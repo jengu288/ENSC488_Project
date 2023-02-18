@@ -30,6 +30,41 @@ bool transformInvert() {
 
 }
 
+void printInternalForm(internalForm tester) {
+	cout << "\nrotation matrix\n";
+	cout << tester.rotation[0][0] << " " << tester.rotation[0][1] << " " << tester.rotation[0][2] << endl;
+	cout << tester.rotation[1][0] << " " << tester.rotation[1][1] << " " << tester.rotation[1][2] << endl;
+	cout << tester.rotation[2][0] << " " << tester.rotation[2][1] << " " << tester.rotation[2][2] << endl;
+
+	cout << "\nposition vector\n";
+
+	cout << tester.position[0] << endl << tester.position[1] << endl << tester.position[2] << endl;
+}
+
+internalForm inverter(internalForm original) {
+	//diagonal elements dont change
+	internalForm transposed;
+	transposed = original;
+
+	transposed.rotation[0][1] = original.rotation[1][0];
+	transposed.rotation[1][0] = original.rotation[0][1];
+	transposed.rotation[0][2] = original.rotation[2][0];
+	transposed.rotation[2][0] = original.rotation[0][2];
+	transposed.rotation[1][2] = original.rotation[2][1];
+	transposed.rotation[2][1] = original.rotation[1][2];
+
+	//transposed.position = matrixmult(transposed.rotation,original.position);
+	//transposed.position = matrixmult(transposed.position, -1);
+
+	transposed.position[0] = -(transposed.rotation[0][0] * original.position[0] + transposed.rotation[0][1] * original.position[1] + transposed.rotation[0][2] * original.position[2]);
+	transposed.position[1] = -(transposed.rotation[1][0] * original.position[0] + transposed.rotation[1][1] * original.position[1] + transposed.rotation[1][2] * original.position[2]);
+	transposed.position[2] = -(transposed.rotation[2][0] * original.position[0] + transposed.rotation[2][1] * original.position[1] + transposed.rotation[2][2] * original.position[2]);
+
+	printInternalForm(transposed);
+	return transposed;
+	//original.rotation[0][1]
+}
+
 internalForm  userToInternalForm(double x, double y, double z, double theta) {
 	double angleInRad = DEG2RAD(theta);
 
@@ -41,9 +76,7 @@ internalForm  userToInternalForm(double x, double y, double z, double theta) {
 		{x, y, z}
 	};
 
-	cout << tester.rotation[0][1] << endl << tester.rotation[1][1] << endl << tester.rotation[2][1] << endl;
-	cout << tester.position[0] << endl << tester.position[1] << endl << tester.position[2] << endl;
-
+	printInternalForm(tester);
 	return tester;
 }
 
@@ -59,7 +92,8 @@ int main(int argc, char* argv[])
 
 	const int ESC = 27;
 
-	userToInternalForm(1, 2, 3, 90);
+	
+	inverter(userToInternalForm(1, 2, 3, 90));
 
 	printf("1:Press any key to continue \n");
 	printf("2:Press ESC to exit \n");
