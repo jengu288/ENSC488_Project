@@ -15,11 +15,29 @@ struct internalForm {
 	double transform[4][4];
 };
 
+void printInternalForm(internalForm tester) {
+	cout << "\nRotation matrix\n";
+	cout << tester.rotation[0][0] << " " << tester.rotation[0][1] << " " << tester.rotation[0][2] << endl;
+	cout << tester.rotation[1][0] << " " << tester.rotation[1][1] << " " << tester.rotation[1][2] << endl;
+	cout << tester.rotation[2][0] << " " << tester.rotation[2][1] << " " << tester.rotation[2][2] << endl;
+
+	cout << "\nPosition vector\n";
+
+	cout << tester.position[0] << endl << tester.position[1] << endl << tester.position[2] << endl;
+}
+
 bool internalToUserForm() {
 	return false;
 }
 
-bool transformMultiply(double A[4][4], double B[4][4], double C[4][4]) {
+internalForm transformMultiply(double A[4][4], double B[4][4]) {
+	double C[4][4];
+	// Initialize elements of C to 0
+	for (int i = 0; i < 4; i++) {   // rows of C
+		for (int j = 0; j < 4; j++) { // columns of C
+			C[i][j] = 0;
+		}
+	}
 
 	// Calculate Matrix C
 	for (int i = 0; i < 4; i++) { // rows of C
@@ -30,26 +48,22 @@ bool transformMultiply(double A[4][4], double B[4][4], double C[4][4]) {
 		}
 	}
 
-	// Output Matrix C
-	for (int i = 0; i < 4; i++) { // rows of C
-		for (int j = 0; j < 4; j++) { // columns of C
-			cout << C[i][j] << " ";
-		}
-		cout << endl;
-	}
+	internalForm output = {
+		{{C[0][0], C[0][1], C[0][2]},
+		{C[1][0], C[1][1], C[1][2]},
+		{C[2][0], C[2][1], C[2][2]}},
 
-	return false;
-}
+		{C[0][3], C[1][3], C[2][3]},
 
-void printInternalForm(internalForm tester) {
-	cout << "\nrotation matrix\n";
-	cout << tester.rotation[0][0] << " " << tester.rotation[0][1] << " " << tester.rotation[0][2] << endl;
-	cout << tester.rotation[1][0] << " " << tester.rotation[1][1] << " " << tester.rotation[1][2] << endl;
-	cout << tester.rotation[2][0] << " " << tester.rotation[2][1] << " " << tester.rotation[2][2] << endl;
+		{{C[0][0], C[0][1], C[0][2], C[0][3]},
+		{C[1][0], C[1][1], C[1][2], C[1][3]},
+		{C[2][0], C[2][1], C[2][2], C[2][3]},
+		{C[3][0], C[3][1], C[3][2], C[3][3]}}
+	};
 
-	cout << "\nposition vector\n";
+	printInternalForm(output);
 
-	cout << tester.position[0] << endl << tester.position[1] << endl << tester.position[2] << endl;
+	return output;
 }
 
 internalForm transformInvert(internalForm original) {
@@ -107,9 +121,9 @@ int main(int argc, char* argv[])
 	internalForm createdTestA = userToInternalForm(5, 8, 2, 83); // x, y, z, theta form input
 	internalForm createdTestB = userToInternalForm(2, 4, 7, 12);
 
-	internalForm createdTestOutput = userToInternalForm(0, 0, 0, 0);
+
 	transformInvert(createdTestA);
-	transformMultiply(createdTestA.transform, createdTestB.transform, createdTestOutput.transform);
+	internalForm createdTestOutput = transformMultiply(createdTestA.transform, createdTestB.transform);
 
 	printf("1:Press any key to continue \n");
 	printf("2:Press ESC to exit \n");
