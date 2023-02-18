@@ -12,3 +12,4 @@ lib/use_only_hardware.bat
 m5apiw32.dll
 PowerCubeSim.dll
 PowerCubeSim.lib
+ProgrammingDemo.cpp
