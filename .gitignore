@@ -1,0 +1,14 @@
+
+Scara.ini
+stateid.h
+StdAfx.h
+ensc-488.h
+glut32.dll
+instructions/Ensc488-DemoCodeSetup-2023.pdf
+lib/PowerCubeSim_S.dll
+lib/use_hardware_and_emulator.bat
+lib/use_only_emulator.bat
+lib/use_only_hardware.bat
+m5apiw32.dll
+PowerCubeSim.dll
+PowerCubeSim.lib
