@@ -12,22 +12,33 @@ using namespace std;
 struct internalForm {
 	double rotation[3][3];
 	double position[3];
+	double transform[4][4];
 };
-
 
 bool internalToUserForm() {
 	return false;
-
 }
 
-bool transformMultiply() {
+bool transformMultiply(double A[4][4], double B[4][4], double C[4][4]) {
+
+	// Calculate Matrix C
+	for (int i = 0; i < 4; i++) { // rows of C
+		for (int j = 0; j < 4; j++) { // columns of B
+			for (int k = 0; k < 4; k++) { // columns of A, rows of B
+				C[i][j] += A[i][k] * B[k][j];
+			}
+		}
+	}
+
+	// Output Matrix C
+	for (int i = 0; i < 4; i++) { // rows of C
+		for (int j = 0; j < 4; j++) { // columns of C
+			cout << C[i][j] << " ";
+		}
+		cout << endl;
+	}
+
 	return false;
-
-}
-
-bool transformInvert() {
-	return false;
-
 }
 
 void printInternalForm(internalForm tester) {
@@ -41,7 +52,7 @@ void printInternalForm(internalForm tester) {
 	cout << tester.position[0] << endl << tester.position[1] << endl << tester.position[2] << endl;
 }
 
-internalForm inverter(internalForm original) {
+internalForm transformInvert(internalForm original) {
 	//diagonal elements dont change
 	internalForm transposed;
 	transposed = original;
@@ -53,16 +64,12 @@ internalForm inverter(internalForm original) {
 	transposed.rotation[1][2] = original.rotation[2][1];
 	transposed.rotation[2][1] = original.rotation[1][2];
 
-	//transposed.position = matrixmult(transposed.rotation,original.position);
-	//transposed.position = matrixmult(transposed.position, -1);
-
 	transposed.position[0] = -(transposed.rotation[0][0] * original.position[0] + transposed.rotation[0][1] * original.position[1] + transposed.rotation[0][2] * original.position[2]);
 	transposed.position[1] = -(transposed.rotation[1][0] * original.position[0] + transposed.rotation[1][1] * original.position[1] + transposed.rotation[1][2] * original.position[2]);
 	transposed.position[2] = -(transposed.rotation[2][0] * original.position[0] + transposed.rotation[2][1] * original.position[1] + transposed.rotation[2][2] * original.position[2]);
 
 	printInternalForm(transposed);
 	return transposed;
-	//original.rotation[0][1]
 }
 
 internalForm  userToInternalForm(double x, double y, double z, double theta) {
@@ -73,7 +80,12 @@ internalForm  userToInternalForm(double x, double y, double z, double theta) {
 		{sin(angleInRad), cos(angleInRad), 0},
 		{0, 0, 1}},
 
-		{x, y, z}
+		{x, y, z},
+
+		{{cos(angleInRad), -sin(angleInRad), 0, x}, 
+		{sin(angleInRad), cos(angleInRad), 0, y}, 
+		{0, 0 , 1, z}, 
+		{0, 0, 0, 1}}
 	};
 
 	printInternalForm(tester);
@@ -92,8 +104,12 @@ int main(int argc, char* argv[])
 
 	const int ESC = 27;
 
-	
-	inverter(userToInternalForm(1, 2, 3, 90));
+	internalForm createdTestA = userToInternalForm(5, 8, 2, 83); // x, y, z, theta form input
+	internalForm createdTestB = userToInternalForm(2, 4, 7, 12);
+
+	internalForm createdTestOutput = userToInternalForm(0, 0, 0, 0);
+	transformInvert(createdTestA);
+	transformMultiply(createdTestA.transform, createdTestB.transform, createdTestOutput.transform);
 
 	printf("1:Press any key to continue \n");
 	printf("2:Press ESC to exit \n");
