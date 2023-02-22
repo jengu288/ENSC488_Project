@@ -16,7 +16,7 @@ struct internalForm {
 };
 
 void printInternalForm(internalForm toPrint);
-bool internalToUserForm();
+double* internalToUserForm(internalForm in);
 internalForm transformMultiply(double A[4][4], double B[4][4]);
 internalForm transformInvert(internalForm original);
 internalForm  userToInternalForm(double x, double y, double z, double theta);
@@ -35,7 +35,11 @@ int main(int argc, char* argv[])
 
 	internalForm createdTestA = userToInternalForm(5, 8, 2, 83); // x, y, z, theta form input
 	internalForm createdTestB = userToInternalForm(2, 4, 7, 12);
-
+	double* returnedToUser = internalToUserForm(createdTestA);
+	
+	cout << "Testing for the internal to user form:\n";
+	cout << returnedToUser[0] << " " << returnedToUser[1] << " " << returnedToUser[2] << " " << returnedToUser[3] << endl;
+ 
 
 	transformInvert(createdTestA);
 	internalForm createdTestOutput = transformMultiply(createdTestA.transform, createdTestB.transform);
@@ -86,8 +90,15 @@ void printInternalForm(internalForm toPrint) {
 	cout << toPrint.position[0] << endl << toPrint.position[1] << endl << toPrint.position[2] << endl;
 }
 
-bool internalToUserForm() {
-	return false;
+double* internalToUserForm(internalForm in) {
+	static double out[4];
+
+	out[0] = in.position[0];
+	out[1] = in.position[1];
+	out[2] = in.position[2];
+
+	out[3] = RAD2DEG(acos(in.rotation[0][0]));
+	return out;
 }
 
 internalForm transformMultiply(double A[4][4], double B[4][4]) {
