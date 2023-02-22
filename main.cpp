@@ -108,8 +108,8 @@ internalForm  userToInternalForm(double x, double y, double z, double theta) {
 
 int main(int argc, char* argv[])
 {
-	JOINT q1 = { 0, 0, -100, 0 }; //JOINT R R P R
-	JOINT q2 = { 0, 0, -200, 0 };
+	JOINT configA = { 0, 0, -100, 0 }; //JOINT R R P R
+	JOINT configB = { 0, 0, -200, 0 };
 	printf("Keep this window in focus, and...\n");
 
 
@@ -132,7 +132,6 @@ int main(int argc, char* argv[])
 
 	while (1)
 	{
-
 		if (c != ESC)
 		{
 			printf("Press '1' or '2' \n");
@@ -140,11 +139,11 @@ int main(int argc, char* argv[])
 
 			if (ch == '1')
 			{
-				MoveToConfiguration(q1);
+				MoveToConfiguration(configA);
 			}
 			else if (ch == '2')
 			{
-				MoveToConfiguration(q2);
+				MoveToConfiguration(configB);
 			}
 
 			printf("Press any key to continue \n");
