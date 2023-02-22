@@ -35,14 +35,17 @@ int main(int argc, char* argv[])
 
 	internalForm createdTestA = userToInternalForm(5, 8, 2, 83); // x, y, z, theta form input
 	internalForm createdTestB = userToInternalForm(2, 4, 7, 12);
+	printInternalForm(createdTestA);
+	printInternalForm(createdTestB);
+
 	double* returnedToUser = internalToUserForm(createdTestA);
-	
 	cout << "Testing for the internal to user form:\n";
 	cout << returnedToUser[0] << " " << returnedToUser[1] << " " << returnedToUser[2] << " " << returnedToUser[3] << endl;
- 
+	
+	printInternalForm(transformInvert(createdTestA));
 
-	transformInvert(createdTestA);
 	internalForm createdTestOutput = transformMultiply(createdTestA.transform, createdTestB.transform);
+	printInternalForm(createdTestOutput);
 
 	printf("1:Press any key to continue \n");
 	printf("2:Press ESC to exit \n");
@@ -91,7 +94,7 @@ void printInternalForm(internalForm toPrint) {
 }
 
 double* internalToUserForm(internalForm in) {
-	static double out[4];
+	static double out[4] = { 0 };
 
 	out[0] = in.position[0];
 	out[1] = in.position[1];
@@ -132,8 +135,6 @@ internalForm transformMultiply(double A[4][4], double B[4][4]) {
 		{C[3][0], C[3][1], C[3][2], C[3][3]}}
 	};
 
-	printInternalForm(output);
-
 	return output;
 }
 
@@ -153,7 +154,6 @@ internalForm transformInvert(internalForm original) {
 	transposed.position[1] = -(transposed.rotation[1][0] * original.position[0] + transposed.rotation[1][1] * original.position[1] + transposed.rotation[1][2] * original.position[2]);
 	transposed.position[2] = -(transposed.rotation[2][0] * original.position[0] + transposed.rotation[2][1] * original.position[1] + transposed.rotation[2][2] * original.position[2]);
 
-	printInternalForm(transposed);
 	return transposed;
 }
 
@@ -173,7 +173,6 @@ internalForm  userToInternalForm(double x, double y, double z, double theta) {
 		{0, 0, 0, 1}}
 	};
 
-	printInternalForm(tester);
 	return tester;
 }
 
