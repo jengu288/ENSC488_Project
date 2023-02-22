@@ -15,15 +15,75 @@ struct internalForm {
 	double transform[4][4];
 };
 
-void printInternalForm(internalForm tester) {
+void printInternalForm(internalForm toPrint);
+bool internalToUserForm();
+internalForm transformMultiply(double A[4][4], double B[4][4]);
+internalForm transformInvert(internalForm original);
+internalForm  userToInternalForm(double x, double y, double z, double theta);
+
+int main(int argc, char* argv[])
+{
+	JOINT configA = { 0, 0, -100, 0 }; //JOINT R R P R
+	JOINT configB = { 0, 0, -200, 0 };
+	printf("Keep this window in focus, and...\n");
+
+
+	char ch;
+	int c;
+
+	const int ESC = 27;
+
+	internalForm createdTestA = userToInternalForm(5, 8, 2, 83); // x, y, z, theta form input
+	internalForm createdTestB = userToInternalForm(2, 4, 7, 12);
+
+
+	transformInvert(createdTestA);
+	internalForm createdTestOutput = transformMultiply(createdTestA.transform, createdTestB.transform);
+
+	printf("1:Press any key to continue \n");
+	printf("2:Press ESC to exit \n");
+
+	c = _getch();
+
+	while (1)
+	{
+		if (c != ESC)
+		{
+			printf("Press '1' or '2' \n");
+			ch = _getch();
+
+			if (ch == '1')
+			{
+				MoveToConfiguration(configA);
+			}
+			else if (ch == '2')
+			{
+				MoveToConfiguration(configB);
+			}
+
+			printf("Press any key to continue \n");
+			printf("Press ESC to exit \n");
+			c = _getch();
+		}
+		else
+			break;
+
+
+	}
+
+
+	return 0;
+}
+
+void printInternalForm(internalForm toPrint) {
 	cout << "\nRotation matrix\n";
-	cout << tester.rotation[0][0] << " " << tester.rotation[0][1] << " " << tester.rotation[0][2] << endl;
-	cout << tester.rotation[1][0] << " " << tester.rotation[1][1] << " " << tester.rotation[1][2] << endl;
-	cout << tester.rotation[2][0] << " " << tester.rotation[2][1] << " " << tester.rotation[2][2] << endl;
+	cout << toPrint.rotation[0][0] << " " << toPrint.rotation[0][1] << " " << toPrint.rotation[0][2] << endl;
+	cout << toPrint.rotation[1][0] << " " << toPrint.rotation[1][1] << " " << toPrint.rotation[1][2] << endl;
+	cout << toPrint.rotation[2][0] << " " << toPrint.rotation[2][1] << " " << toPrint.rotation[2][2] << endl;
 
 	cout << "\nPosition vector\n";
 
-	cout << tester.position[0] << endl << tester.position[1] << endl << tester.position[2] << endl;
+	cout << toPrint.position[0] << endl << toPrint.position[1] << endl << toPrint.position[2] << endl;
 }
 
 bool internalToUserForm() {
@@ -96,9 +156,9 @@ internalForm  userToInternalForm(double x, double y, double z, double theta) {
 
 		{x, y, z},
 
-		{{cos(angleInRad), -sin(angleInRad), 0, x}, 
-		{sin(angleInRad), cos(angleInRad), 0, y}, 
-		{0, 0 , 1, z}, 
+		{{cos(angleInRad), -sin(angleInRad), 0, x},
+		{sin(angleInRad), cos(angleInRad), 0, y},
+		{0, 0 , 1, z},
 		{0, 0, 0, 1}}
 	};
 
@@ -106,56 +166,3 @@ internalForm  userToInternalForm(double x, double y, double z, double theta) {
 	return tester;
 }
 
-int main(int argc, char* argv[])
-{
-	JOINT configA = { 0, 0, -100, 0 }; //JOINT R R P R
-	JOINT configB = { 0, 0, -200, 0 };
-	printf("Keep this window in focus, and...\n");
-
-
-	char ch;
-	int c;
-
-	const int ESC = 27;
-
-	internalForm createdTestA = userToInternalForm(5, 8, 2, 83); // x, y, z, theta form input
-	internalForm createdTestB = userToInternalForm(2, 4, 7, 12);
-
-
-	transformInvert(createdTestA);
-	internalForm createdTestOutput = transformMultiply(createdTestA.transform, createdTestB.transform);
-
-	printf("1:Press any key to continue \n");
-	printf("2:Press ESC to exit \n");
-
-	c = _getch();
-
-	while (1)
-	{
-		if (c != ESC)
-		{
-			printf("Press '1' or '2' \n");
-			ch = _getch();
-
-			if (ch == '1')
-			{
-				MoveToConfiguration(configA);
-			}
-			else if (ch == '2')
-			{
-				MoveToConfiguration(configB);
-			}
-
-			printf("Press any key to continue \n");
-			printf("Press ESC to exit \n");
-			c = _getch();
-		}
-		else
-			break;
-
-
-	}
-
-
-	return 0;
-}
