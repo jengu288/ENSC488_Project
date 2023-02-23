@@ -15,6 +15,17 @@ struct internalForm {
 	double transform[4][4];
 };
 
+class TransformMatrix
+{
+public:
+	int test = 0;
+	void testFunc();
+
+	TransformMatrix() {
+		test = 1;
+	};
+};
+
 void printInternalForm(internalForm toPrint);
 double* internalToUserForm(internalForm in);
 internalForm transformMultiply(double A[4][4], double B[4][4]);
@@ -61,6 +72,8 @@ int main(int argc, char* argv[])
 
 			if (ch == '1')
 			{
+				TransformMatrix thisThing = TransformMatrix();
+				thisThing.testFunc();
 				MoveToConfiguration(configA);
 			}
 			else if (ch == '2')
@@ -80,6 +93,10 @@ int main(int argc, char* argv[])
 
 
 	return 0;
+}
+
+void TransformMatrix::testFunc() {
+	cout << "stuff";
 }
 
 void printInternalForm(internalForm toPrint) {
