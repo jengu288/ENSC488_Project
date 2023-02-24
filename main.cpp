@@ -63,12 +63,23 @@ internalForm  userToInternalForm(double x, double y, double z, double theta);
 
 int main(int argc, char* argv[])
 {
-
 	TransformMatrix thisThing = TransformMatrix();
 	matrixDouble rot = thisThing.getRotation();
 	thisThing.printTransformMatrix();
 	thisThing.printPosition();
 	thisThing.printRotation();
+
+	rot[0][0] = rot[0][0] * 2;
+	thisThing.setRotation(rot);
+
+	thisThing.printTransformMatrix();
+
+	matrixDouble modifiedTransform = thisThing.getTransform();
+	modifiedTransform[1][1] = 37;
+
+	thisThing.setTransform(modifiedTransform);
+
+	thisThing.printTransformMatrix();
 
 	JOINT configA = { 0, 0, -100, 0 }; //JOINT R R P R
 	JOINT configB = { 0, 0, -200, 0 };
@@ -170,6 +181,30 @@ vector<double> TransformMatrix::getPosition()
 matrixDouble TransformMatrix::getTransform()
 {
 	return transform;
+}
+
+void TransformMatrix::setRotation(matrixDouble newRotate)
+{
+	for (int i = 0; i < ROTATE_MATRIX_DIM; i++)
+	{
+		for (int j = 0; j < ROTATE_MATRIX_DIM; j++)
+		{
+			transform[i][j] = newRotate[i][j];
+		}
+	}
+}
+
+void TransformMatrix::setPosition(vector<double> newPosition)
+{
+	for (int i = 0; i < newPosition.size(); i++)
+	{
+		transform[i][3] = newPosition[i];
+	}
+}
+
+void TransformMatrix::setTransform(matrixDouble newTransform)
+{
+	transform = newTransform;
 }
 
 void TransformMatrix::printTransformMatrix()
