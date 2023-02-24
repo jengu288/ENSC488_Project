@@ -7,7 +7,13 @@
 #include "ensc-488.h"
 #include <iostream>
 #include <string>
+#include <vector>
 using namespace std;
+
+const int ROTATE_MATRIX_DIM = 3;
+
+typedef vector<vector<double>> matrixDouble;
+
 
 struct internalForm {
 	double rotation[3][3];
@@ -18,12 +24,33 @@ struct internalForm {
 class TransformMatrix
 {
 public:
-	int test = 0;
-	void testFunc();
-
 	TransformMatrix() {
-		test = 1;
+		//default constructor makes a 4x4 identity matrix
 	};
+
+	TransformMatrix(double x, double y, double z, double theta);
+	TransformMatrix(matrixDouble matrix);
+
+	matrixDouble getRotation();
+	vector<double> getPosition();
+	matrixDouble getTransform();
+
+	void setRotation(matrixDouble newRotate);
+	void setPosition(vector<double> newPosition);
+	void setTransform(matrixDouble newTransform);
+
+	void printTransformMatrix();
+	void printRotation();
+	void printPosition();
+
+	static TransformMatrix transformMatrixToUserForm(double x, double y, double z, double theta);
+
+private:
+	matrixDouble transform = { {1, 0, 0, 0},
+							  {0, 1, 0, 0},
+							  {0, 0, 1, 0},
+							  {0, 0, 0, 1} };
+
 };
 
 void printInternalForm(internalForm toPrint);
@@ -34,6 +61,11 @@ internalForm  userToInternalForm(double x, double y, double z, double theta);
 
 int main(int argc, char* argv[])
 {
+
+	TransformMatrix thisThing = TransformMatrix();
+	matrixDouble rot = thisThing.getRotation();
+	thisThing.printTransformMatrix();
+
 	JOINT configA = { 0, 0, -100, 0 }; //JOINT R R P R
 	JOINT configB = { 0, 0, -200, 0 };
 	printf("Keep this window in focus, and...\n");
@@ -52,11 +84,11 @@ int main(int argc, char* argv[])
 	double* returnedToUser = internalToUserForm(createdTestA);
 	cout << "Testing for the internal to user form:\n";
 	cout << returnedToUser[0] << " " << returnedToUser[1] << " " << returnedToUser[2] << " " << returnedToUser[3] << endl;
-	
+
 	printInternalForm(transformInvert(createdTestA));
 
-	internalForm createdTestOutput = transformMultiply(createdTestA.transform, createdTestB.transform);
-	printInternalForm(createdTestOutput);
+	//internalForm createdTestOutput = transformMultiply(createdTestA.transform, createdTestB.transform);
+	//printInternalForm(createdTestOutput);
 
 	printf("1:Press any key to continue \n");
 	printf("2:Press ESC to exit \n");
@@ -72,8 +104,6 @@ int main(int argc, char* argv[])
 
 			if (ch == '1')
 			{
-				TransformMatrix thisThing = TransformMatrix();
-				thisThing.testFunc();
 				MoveToConfiguration(configA);
 			}
 			else if (ch == '2')
@@ -95,8 +125,90 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
-void TransformMatrix::testFunc() {
-	cout << "stuff";
+TransformMatrix::TransformMatrix(double x, double y, double z, double theta)
+{
+	double angleInRad = DEG2RAD(theta);
+	transform = { {cos(angleInRad), -sin(angleInRad), 0, x},
+				 {sin(angleInRad), cos(angleInRad), 0, y},
+				 {0, 0 , 1, z},
+				 {0, 0, 0, 1} };
+}
+
+TransformMatrix::TransformMatrix(matrixDouble matrix)
+{
+	transform = matrix;
+}
+
+matrixDouble TransformMatrix::getRotation()
+{
+	matrixDouble rotation = { {0, 0, 0 },
+		{0, 0, 0},
+		{0, 0, 0} };
+
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			rotation[i][j] = transform[i][j];
+		}
+	}
+	return rotation;
+}
+
+vector<double> TransformMatrix::getPosition()
+{
+	vector<double> position = { 0, 0, 0 };
+
+	for (int i = 0; i < 3; i++) {
+		position[i] = transform[i][3];
+	}
+	return position;
+}
+
+matrixDouble TransformMatrix::getTransform()
+{
+	return transform;
+}
+
+void TransformMatrix::printTransformMatrix()
+{
+	cout << "Transformation Matrix" << endl;
+	for (int i = 0; i < transform.size(); i++)
+	{
+		for (int j = 0; j < transform[i].size(); j++)
+		{
+			cout << transform[i][j] << " ";
+		}
+
+		cout << endl;
+	}
+}
+
+void TransformMatrix::printRotation()
+{
+	cout << "Rotation Matrix" << endl;
+
+	for (int i = 0; i < ROTATE_MATRIX_DIM; i++)
+	{
+		for (int j = 0; j < ROTATE_MATRIX_DIM; j++)
+		{
+			cout << transform[i][j] << " ";
+		}
+
+		cout << endl;
+	}
+}
+
+void TransformMatrix::printPosition()
+{
+	cout << "Position Vector" << endl;
+	for (int i = 0; i < transform.size(); i++)
+	{
+		cout << transform[i][3] << " " << endl;
+	}
+}
+
+TransformMatrix TransformMatrix::transformMatrixToUserForm(double x, double y, double z, double theta)
+{
+	return TransformMatrix(x, y, z, theta);
 }
 
 void printInternalForm(internalForm toPrint) {
