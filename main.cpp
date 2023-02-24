@@ -43,13 +43,15 @@ public:
 	void printRotation();
 	void printPosition();
 
-	static TransformMatrix transformMatrixToUserForm(double x, double y, double z, double theta);
+	static TransformMatrix userFormToTransformMatrix(double x, double y, double z, double theta);
+	static vector<double> transformMatrixToUserForm(TransformMatrix transform);
+
 
 private:
 	matrixDouble transform = { {1, 0, 0, 0},
-							  {0, 1, 0, 0},
-							  {0, 0, 1, 0},
-							  {0, 0, 0, 1} };
+							   {0, 1, 0, 0},
+							   {0, 0, 1, 0},
+							   {0, 0, 0, 1} };
 
 };
 
@@ -65,6 +67,8 @@ int main(int argc, char* argv[])
 	TransformMatrix thisThing = TransformMatrix();
 	matrixDouble rot = thisThing.getRotation();
 	thisThing.printTransformMatrix();
+	thisThing.printPosition();
+	thisThing.printRotation();
 
 	JOINT configA = { 0, 0, -100, 0 }; //JOINT R R P R
 	JOINT configB = { 0, 0, -200, 0 };
@@ -157,7 +161,7 @@ vector<double> TransformMatrix::getPosition()
 {
 	vector<double> position = { 0, 0, 0 };
 
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 2; i++) {
 		position[i] = transform[i][3];
 	}
 	return position;
@@ -171,6 +175,7 @@ matrixDouble TransformMatrix::getTransform()
 void TransformMatrix::printTransformMatrix()
 {
 	cout << "Transformation Matrix" << endl;
+
 	for (int i = 0; i < transform.size(); i++)
 	{
 		for (int j = 0; j < transform[i].size(); j++)
@@ -186,11 +191,12 @@ void TransformMatrix::printRotation()
 {
 	cout << "Rotation Matrix" << endl;
 
+	matrixDouble rotationMat = getRotation();
 	for (int i = 0; i < ROTATE_MATRIX_DIM; i++)
 	{
 		for (int j = 0; j < ROTATE_MATRIX_DIM; j++)
 		{
-			cout << transform[i][j] << " ";
+			cout << rotationMat[i][j] << " ";
 		}
 
 		cout << endl;
@@ -200,15 +206,30 @@ void TransformMatrix::printRotation()
 void TransformMatrix::printPosition()
 {
 	cout << "Position Vector" << endl;
-	for (int i = 0; i < transform.size(); i++)
+
+	vector<double> positionVec = getPosition();
+	for (int i = 0; i < positionVec.size(); i++)
 	{
-		cout << transform[i][3] << " " << endl;
+		cout << positionVec[i] << " " << endl;
 	}
 }
 
-TransformMatrix TransformMatrix::transformMatrixToUserForm(double x, double y, double z, double theta)
+TransformMatrix TransformMatrix::userFormToTransformMatrix(double x, double y, double z, double theta)
 {
 	return TransformMatrix(x, y, z, theta);
+}
+
+vector<double> TransformMatrix::transformMatrixToUserForm(TransformMatrix transformMat)
+{
+	vector<double> userForm(4);
+
+	userForm.push_back(transformMat.getPosition()[0]);
+	userForm.push_back(transformMat.getPosition()[1]);
+	userForm.push_back(transformMat.getPosition()[2]);
+
+	userForm.push_back(RAD2DEG(acos(transformMat.getRotation()[0][0])));
+
+	return userForm;
 }
 
 void printInternalForm(internalForm toPrint) {
