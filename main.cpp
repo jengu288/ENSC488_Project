@@ -93,8 +93,16 @@ int main(int argc, char* argv[])
 
 	internalForm createdTestA = userToInternalForm(5, 8, 2, 83); // x, y, z, theta form input
 	internalForm createdTestB = userToInternalForm(2, 4, 7, 12);
+
 	printInternalForm(createdTestA);
 	printInternalForm(createdTestB);
+
+	TransformMatrix testA = TransformMatrix::userFormToTransformMatrix(5, 8, 2, 83);
+	TransformMatrix testB = TransformMatrix::userFormToTransformMatrix(2, 4, 7, 12);
+
+	testA.printTransformMatrix();
+	testB.printTransformMatrix();
+
 
 	double* returnedToUser = internalToUserForm(createdTestA);
 	cout << "Testing for the internal to user form:\n";
