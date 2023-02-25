@@ -48,6 +48,7 @@ public:
 
 	static TransformMatrix userFormToTransformMatrix(double x, double y, double z, double theta);
 	static vector<double> transformMatrixToUserForm(TransformMatrix transform);
+	static TransformMatrix transformMatrixMultiply(TransformMatrix lh, TransformMatrix rh); //rh*lh since multiplication order matters for matrices
 
 	TransformMatrix operator*(TransformMatrix rh);
 
@@ -105,13 +106,14 @@ int main(int argc, char* argv[])
 	TransformMatrix testA = TransformMatrix::userFormToTransformMatrix(337, 0, 135, 0);
 	TransformMatrix testB = TransformMatrix::userFormToTransformMatrix(337, 0, 35, 0);
 	TransformMatrix testC = testA * testB;
+	TransformMatrix testD = TransformMatrix::transformMatrixMultiply(testA, testB);
 
 	testA.printTransformMatrix();
 	testB.printTransformMatrix();
 	testC.printTransformMatrix();
+	testD.printTransformMatrix();
 
 	testA.invert();
-
 	testA.printTransformMatrix();
 
 	double* returnedToUser = internalToUserForm(createdTestA);
@@ -296,6 +298,11 @@ vector<double> TransformMatrix::transformMatrixToUserForm(TransformMatrix transf
 	userForm.push_back(RAD2DEG(acos(transformMat.getRotation()[0][0])));
 
 	return userForm;
+}
+
+TransformMatrix TransformMatrix::transformMatrixMultiply(TransformMatrix lh, TransformMatrix rh)
+{
+	return lh * rh; //uses overloaded operator
 }
 
 TransformMatrix TransformMatrix::operator*(TransformMatrix rh)
