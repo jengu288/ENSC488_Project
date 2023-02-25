@@ -43,14 +43,15 @@ public:
 	void printTransformMatrix();
 	void printRotation();
 	void printPosition();
+	void printUserForm();
 
 	void invert();
 
 	static TransformMatrix userFormToTransformMatrix(double x, double y, double z, double theta);
 	static vector<double> transformMatrixToUserForm(TransformMatrix transform);
-	static TransformMatrix transformMatrixMultiply(TransformMatrix lh, TransformMatrix rh); //rh*lh since multiplication order matters for matrices
+	static TransformMatrix transformMatrixMultiply(TransformMatrix lh, TransformMatrix rh); //lh*rh since multiplication order matters for matrices
 
-	TransformMatrix operator*(TransformMatrix rh);
+	TransformMatrix operator*(TransformMatrix rh); //overloaded operator to do this*rh
 
 
 private:
@@ -61,32 +62,8 @@ private:
 
 };
 
-void printInternalForm(internalForm toPrint); //finished port
-double* internalToUserForm(internalForm in); //finished port
-internalForm transformMultiply(double A[4][4], double B[4][4]); // finished port
-internalForm transformInvert(internalForm original); //finished port
-internalForm  userToInternalForm(double x, double y, double z, double theta); //finished port
-
 int main(int argc, char* argv[])
 {
-	TransformMatrix thisThing = TransformMatrix();
-	matrixDouble rot = thisThing.getRotation();
-	thisThing.printTransformMatrix();
-	thisThing.printPosition();
-	thisThing.printRotation();
-
-	rot[0][0] = rot[0][0] * 2;
-	thisThing.setRotation(rot);
-
-	thisThing.printTransformMatrix();
-
-	matrixDouble modifiedTransform = thisThing.getTransform();
-	modifiedTransform[1][1] = 37;
-
-	thisThing.setTransform(modifiedTransform);
-
-	thisThing.printTransformMatrix();
-
 	JOINT configA = { 0, 0, -100, 0 }; //JOINT R R P R
 	JOINT configB = { 0, 0, -200, 0 };
 	printf("Keep this window in focus, and...\n");
@@ -97,37 +74,53 @@ int main(int argc, char* argv[])
 
 	const int ESC = 27;
 
-	internalForm createdTestA = userToInternalForm(5, 8, 2, 83); // x, y, z, phi form input
-	internalForm createdTestB = userToInternalForm(2, 4, 7, 12);
+	TransformMatrix identityTest = TransformMatrix();
+	matrixDouble rot = identityTest.getRotation();
 
-	printInternalForm(createdTestA);
-	printInternalForm(createdTestB);
+	//test print functions
+	cout << "Print identity from TransformMatrix default constructor" << endl;
+	identityTest.printTransformMatrix();
+	identityTest.printPosition();
+	identityTest.printRotation();
 
-	TransformMatrix testA = TransformMatrix::userFormToTransformMatrix(337, 0, 135, 0);
-	TransformMatrix testB = TransformMatrix::userFormToTransformMatrix(337, 0, 35, 0);
+	//test set rotation function
+	cout << "Set the rotation[0][0] to 2 using setRotation()" << endl;
+	rot[0][0] = rot[0][0] * 2;
+	identityTest.setRotation(rot);
+	identityTest.printTransformMatrix();
+
+	//testing set transform function
+	cout << "Set the transformation[1][1] to 37 using setTransformation()" << endl;
+	matrixDouble modifiedTransform = identityTest.getTransform();
+	modifiedTransform[1][1] = 37;
+	identityTest.setTransform(modifiedTransform);
+	identityTest.printTransformMatrix();
+
+	//Testing using 2 simply cases
+	TransformMatrix testA = TransformMatrix::userFormToTransformMatrix(337, 0, 135, 0); // 0 0 -200 0 -> check these
+	TransformMatrix testB = TransformMatrix::userFormToTransformMatrix(337, 0, 35, 0); // 0 0 -100 0
+
+	testA.printTransformMatrix();
+	testB.printTransformMatrix();
+	testA.printUserForm();
+	testB.printUserForm();
 
 	//testing both multiply options
 	TransformMatrix testC = testA * testB;
 	TransformMatrix testD = TransformMatrix::transformMatrixMultiply(testA, testB);
-
-	testA.printTransformMatrix();
-	testB.printTransformMatrix();
 	testC.printTransformMatrix();
 	testD.printTransformMatrix();
 
+	//test invert function
 	testA.invert();
 	testA.printTransformMatrix();
 
-	double* returnedToUser = internalToUserForm(createdTestA);
-	cout << "Testing for the internal to user form:\n";
-	cout << returnedToUser[0] << " " << returnedToUser[1] << " " << returnedToUser[2] << " " << returnedToUser[3] << endl;
+	//custom test cases
+	TransformMatrix createdTestI = TransformMatrix::userFormToTransformMatrix(5, 8, 2, 83); // x, y, z, phi form input
+	TransformMatrix createdTestJ = TransformMatrix::userFormToTransformMatrix(2, 4, 7, 12);
 
-	printInternalForm(transformInvert(createdTestA));
-
-
-
-	//internalForm createdTestOutput = transformMultiply(createdTestA.transform, createdTestB.transform);
-	//printInternalForm(createdTestOutput);
+	createdTestI.printTransformMatrix();
+	createdTestJ.printTransformMatrix();
 
 	printf("1:Press any key to continue \n");
 	printf("2:Press ESC to exit \n");
@@ -284,6 +277,19 @@ void TransformMatrix::printPosition()
 	}
 }
 
+void TransformMatrix::printUserForm()
+{
+	vector<double> userForm = transformMatrixToUserForm(*this);
+	cout << "User Form" << endl;
+	for (int i = 0; i < userForm.size(); i++)
+	{
+		cout << userForm[i] << " ";
+	}
+
+	cout << endl;
+	
+}
+
 TransformMatrix TransformMatrix::userFormToTransformMatrix(double x, double y, double z, double theta)
 {
 	return TransformMatrix(x, y, z, theta);
@@ -291,7 +297,7 @@ TransformMatrix TransformMatrix::userFormToTransformMatrix(double x, double y, d
 
 vector<double> TransformMatrix::transformMatrixToUserForm(TransformMatrix transformMat)
 {
-	vector<double> userForm(4);
+	vector<double> userForm;
 
 	userForm.push_back(transformMat.getPosition()[0]);
 	userForm.push_back(transformMat.getPosition()[1]);
