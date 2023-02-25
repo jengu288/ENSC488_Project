@@ -49,6 +49,8 @@ public:
 	static TransformMatrix userFormToTransformMatrix(double x, double y, double z, double theta);
 	static vector<double> transformMatrixToUserForm(TransformMatrix transform);
 
+	TransformMatrix operator*(TransformMatrix rh);
+
 
 private:
 	matrixDouble transform = { {1, 0, 0, 0},
@@ -101,10 +103,12 @@ int main(int argc, char* argv[])
 	printInternalForm(createdTestB);
 
 	TransformMatrix testA = TransformMatrix::userFormToTransformMatrix(337, 0, 135, 0);
-	TransformMatrix testB = TransformMatrix::userFormToTransformMatrix(2, 4, 7, 12);
+	TransformMatrix testB = TransformMatrix::userFormToTransformMatrix(337, 0, 35, 0);
+	TransformMatrix testC = testA * testB;
 
 	testA.printTransformMatrix();
 	testB.printTransformMatrix();
+	testC.printTransformMatrix();
 
 	testA.invert();
 
@@ -292,6 +296,29 @@ vector<double> TransformMatrix::transformMatrixToUserForm(TransformMatrix transf
 	userForm.push_back(RAD2DEG(acos(transformMat.getRotation()[0][0])));
 
 	return userForm;
+}
+
+TransformMatrix TransformMatrix::operator*(TransformMatrix rh)
+{
+	matrixDouble A = this->getTransform();
+	matrixDouble B = rh.getTransform();
+
+	// Initialize elements of C to 0
+	matrixDouble C = { {0, 0, 0, 0 },
+		{0, 0, 0, 0},
+		{0, 0, 0, 0},
+		{0, 0, 0, 0} };
+
+	// Calculate Matrix C
+	for (int i = 0; i < 4; i++) { // rows of C
+		for (int j = 0; j < 4; j++) { // columns of B
+			for (int k = 0; k < 4; k++) { // columns of A, rows of B
+				C[i][j] += A[i][k] * B[k][j];
+			}
+		}
+	}
+
+	return TransformMatrix(C);
 }
 
 void TransformMatrix::invert()
