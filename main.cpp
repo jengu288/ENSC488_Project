@@ -28,7 +28,7 @@ public:
 		//default constructor makes a 4x4 identity matrix
 	};
 
-	TransformMatrix(double x, double y, double z, double theta);
+	TransformMatrix(double x, double y, double z, double phi);
 	TransformMatrix(matrixDouble matrix);
 
 	matrixDouble getRotation();
@@ -45,6 +45,7 @@ public:
 
 	static TransformMatrix userFormToTransformMatrix(double x, double y, double z, double theta);
 	static vector<double> transformMatrixToUserForm(TransformMatrix transform);
+	void invert();
 
 
 private:
@@ -55,11 +56,11 @@ private:
 
 };
 
-void printInternalForm(internalForm toPrint);
-double* internalToUserForm(internalForm in);
+void printInternalForm(internalForm toPrint); //finished port
+double* internalToUserForm(internalForm in); //finished port
 internalForm transformMultiply(double A[4][4], double B[4][4]);
 internalForm transformInvert(internalForm original);
-internalForm  userToInternalForm(double x, double y, double z, double theta);
+internalForm  userToInternalForm(double x, double y, double z, double theta); //finished port
 
 int main(int argc, char* argv[])
 {
@@ -91,24 +92,29 @@ int main(int argc, char* argv[])
 
 	const int ESC = 27;
 
-	internalForm createdTestA = userToInternalForm(5, 8, 2, 83); // x, y, z, theta form input
+	internalForm createdTestA = userToInternalForm(5, 8, 2, 83); // x, y, z, phi form input
 	internalForm createdTestB = userToInternalForm(2, 4, 7, 12);
 
 	printInternalForm(createdTestA);
 	printInternalForm(createdTestB);
 
-	TransformMatrix testA = TransformMatrix::userFormToTransformMatrix(5, 8, 2, 83);
+	TransformMatrix testA = TransformMatrix::userFormToTransformMatrix(337, 0, 135, 0);
 	TransformMatrix testB = TransformMatrix::userFormToTransformMatrix(2, 4, 7, 12);
 
 	testA.printTransformMatrix();
 	testB.printTransformMatrix();
 
+	testA.invert();
+
+	testA.printTransformMatrix();
 
 	double* returnedToUser = internalToUserForm(createdTestA);
 	cout << "Testing for the internal to user form:\n";
 	cout << returnedToUser[0] << " " << returnedToUser[1] << " " << returnedToUser[2] << " " << returnedToUser[3] << endl;
 
 	printInternalForm(transformInvert(createdTestA));
+
+
 
 	//internalForm createdTestOutput = transformMultiply(createdTestA.transform, createdTestB.transform);
 	//printInternalForm(createdTestOutput);
@@ -148,13 +154,16 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
-TransformMatrix::TransformMatrix(double x, double y, double z, double theta)
+TransformMatrix::TransformMatrix(double x, double y, double z, double phi)
 {
-	double angleInRad = DEG2RAD(theta);
-	transform = { {cos(angleInRad), -sin(angleInRad), 0, x},
-				 {sin(angleInRad), cos(angleInRad), 0, y},
-				 {0, 0 , 1, z},
+	double angleInRad = DEG2RAD(phi);
+	transform = { {cos(angleInRad), sin(angleInRad), 0, x},
+				 {sin(angleInRad), -cos(angleInRad), 0, y},
+				 {0, 0 , -1, z},
 				 {0, 0, 0, 1} };
+
+	// the rotation matrix was derived by observing the orientation of the base frame to the wrist frame 
+	// where phi is the angle from the base x to the wrist x wrt to the base z
 }
 
 TransformMatrix::TransformMatrix(matrixDouble matrix)
@@ -180,7 +189,8 @@ vector<double> TransformMatrix::getPosition()
 {
 	vector<double> position = { 0, 0, 0 };
 
-	for (int i = 0; i < 2; i++) {
+
+	for (int i = 0; i < 3; i++) {
 		position[i] = transform[i][3];
 	}
 	return position;
@@ -273,6 +283,30 @@ vector<double> TransformMatrix::transformMatrixToUserForm(TransformMatrix transf
 	userForm.push_back(RAD2DEG(acos(transformMat.getRotation()[0][0])));
 
 	return userForm;
+}
+
+void TransformMatrix::invert()
+{
+	//diagonal elements dont change
+	matrixDouble transposedRot = this->getRotation();
+	matrixDouble orignalRot = this->getRotation();
+
+	transposedRot[0][1] = orignalRot[1][0];
+	transposedRot[1][0] = orignalRot[0][1];
+	transposedRot[0][2] = orignalRot[2][0];
+	transposedRot[2][0] = orignalRot[0][2];
+	transposedRot[1][2] = orignalRot[2][1];
+	transposedRot[2][1] = orignalRot[1][2];
+
+	vector<double> inversePos = this->getPosition();
+	vector<double> originalPos = this->getPosition();
+
+	inversePos[0] = -(transposedRot[0][0] * originalPos[0] + transposedRot[0][1] * originalPos[1] + transposedRot[0][2] * originalPos[2]);
+	inversePos[1] = -(transposedRot[1][0] * originalPos[0] + transposedRot[1][1] * originalPos[1] + transposedRot[1][2] * originalPos[2]);
+	inversePos[2] = -(transposedRot[2][0] * originalPos[0] + transposedRot[2][1] * originalPos[1] + transposedRot[2][2] * originalPos[2]);
+
+	this->setPosition(inversePos);
+	this->setRotation(transposedRot);
 }
 
 void printInternalForm(internalForm toPrint) {
