@@ -11,6 +11,7 @@
 using namespace std;
 
 const int ROTATE_MATRIX_DIM = 3;
+const double L1 = 405, L2 = 195, L3 = 70, L4 = 142, L5 = 270, L6 = 270; //in mm
 
 typedef vector<vector<double>> matrixDouble;
 
@@ -43,6 +44,8 @@ public:
 	static TransformMatrix userFormToTransformMatrix(double x, double y, double z, double theta);
 	static vector<double> transformMatrixToUserForm(TransformMatrix transform);
 	static TransformMatrix transformMatrixMultiply(TransformMatrix lh, TransformMatrix rh); //lh*rh since multiplication order matters for matrices
+	static TransformMatrix kinBaseToWrist(JOINT jointParameters); //output is base to wrist transform matrix
+	static TransformMatrix kinModules(JOINT jointParameters);
 
 	TransformMatrix operator*(TransformMatrix rh); //overloaded operator to do this*rh
 
@@ -57,10 +60,15 @@ private:
 
 int main(int argc, char* argv[])
 {
-	JOINT configA = { 0, 0, -100, 0 }; //JOINT R R P R
-	JOINT configB = { 0, 0, -200, 0 };
+	double theta1 = 0, theta2 = 0, d3 = -200, theta4 = 0; // here for now
+
+
+	JOINT configA = { 0, 0, -200, 0 }; //JOINT R R P R
+	JOINT configB = { 0, 0, -100, 0 };
 	printf("Keep this window in focus, and...\n");
 
+	TransformMatrix::kinBaseToWrist(configA);
+	TransformMatrix::kinModules(configA);
 
 	char ch;
 	int c;
@@ -280,7 +288,7 @@ void TransformMatrix::printUserForm()
 	}
 
 	cout << endl;
-	
+
 }
 
 TransformMatrix TransformMatrix::userFormToTransformMatrix(double x, double y, double z, double theta)
@@ -304,6 +312,54 @@ vector<double> TransformMatrix::transformMatrixToUserForm(TransformMatrix transf
 TransformMatrix TransformMatrix::transformMatrixMultiply(TransformMatrix lh, TransformMatrix rh)
 {
 	return lh * rh; //uses overloaded operator
+}
+
+TransformMatrix TransformMatrix::kinBaseToWrist(JOINT jointParameters)
+{
+	double theta1 = jointParameters[0], theta2 = jointParameters[1], d3 = jointParameters[2], theta4 = jointParameters[3];
+	double phi = theta1 + theta2 - theta4;
+	double theta12 = theta1 + theta2;
+
+	TransformMatrix baseToWrist({ {cos(phi), sin(phi), 0, L4 * cos(theta12) + L2 * cos(theta1)},
+							   {sin(phi),-cos(phi), 0, L4 * sin(theta12) + L2 * sin(theta1)},
+							   {0, 0, -1, -d3 - L5 - L6 + L3 + L1},
+							   {0, 0, 0, 1} });
+
+	cout << "This is all together" << endl;
+	baseToWrist.printTransformMatrix();
+	return baseToWrist;
+}
+
+TransformMatrix TransformMatrix::kinModules(JOINT jointParameters)
+{
+	double theta1 = jointParameters[0], theta2 = jointParameters[1], d3 = jointParameters[2], theta4 = jointParameters[3];
+	TransformMatrix baseToOne({ {cos(theta1), -sin(theta1), 0, 0},
+						   {sin(theta1), cos(theta1), 0, 0},
+						   {0, 0, 1, L1},
+						   {0, 0, 0, 1} });
+
+	TransformMatrix oneToTwo({ {cos(theta2), -sin(theta2), 0, L2},
+							   {sin(theta2), cos(theta2), 0, 0},
+							   {0, 0, 1, L3},
+							   {0, 0, 0, 1} });
+
+	TransformMatrix twoToThree({ {1, 0, 0, L4},
+								 {0, -1, 0, 0},
+								 {0, 0, -1, -d3 - L5},
+								 {0, 0, 0, 1} });
+
+	TransformMatrix threeToFour({ {cos(theta4), -sin(theta4), 0, 0},
+								  {sin(theta4), cos(theta4), 0, 0},
+								  {0, 0, 1, L6},
+								  {0, 0, 0, 1} });
+
+	TransformMatrix baseToTwo = baseToOne * oneToTwo;
+	TransformMatrix twoToFour = twoToThree * threeToFour;
+
+	TransformMatrix baseToFourModularized = baseToTwo * twoToFour;
+	cout << "This is from all the  transforms multiplied" << endl;
+	baseToFourModularized.printTransformMatrix();
+	return baseToFourModularized;
 }
 
 TransformMatrix TransformMatrix::operator*(TransformMatrix rh)
