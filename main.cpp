@@ -34,6 +34,7 @@ public:
 	matrixDouble getRotation();
 	vector<double> getPosition();
 	matrixDouble getTransform();
+	TransformMatrix getInverseTransform();
 
 	void setRotation(matrixDouble newRotate);
 	void setPosition(vector<double> newPosition);
@@ -43,9 +44,10 @@ public:
 	void printRotation();
 	void printPosition();
 
+	void invert();
+
 	static TransformMatrix userFormToTransformMatrix(double x, double y, double z, double theta);
 	static vector<double> transformMatrixToUserForm(TransformMatrix transform);
-	void invert();
 
 
 private:
@@ -59,7 +61,7 @@ private:
 void printInternalForm(internalForm toPrint); //finished port
 double* internalToUserForm(internalForm in); //finished port
 internalForm transformMultiply(double A[4][4], double B[4][4]);
-internalForm transformInvert(internalForm original);
+internalForm transformInvert(internalForm original); //finished port
 internalForm  userToInternalForm(double x, double y, double z, double theta); //finished port
 
 int main(int argc, char* argv[])
@@ -199,6 +201,13 @@ vector<double> TransformMatrix::getPosition()
 matrixDouble TransformMatrix::getTransform()
 {
 	return transform;
+}
+
+TransformMatrix TransformMatrix::getInverseTransform()
+{
+	TransformMatrix inverted = *this;
+	inverted.invert();
+	return inverted;
 }
 
 void TransformMatrix::setRotation(matrixDouble newRotate)
