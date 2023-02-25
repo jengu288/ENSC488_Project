@@ -63,7 +63,7 @@ private:
 
 void printInternalForm(internalForm toPrint); //finished port
 double* internalToUserForm(internalForm in); //finished port
-internalForm transformMultiply(double A[4][4], double B[4][4]);
+internalForm transformMultiply(double A[4][4], double B[4][4]); // finished port
 internalForm transformInvert(internalForm original); //finished port
 internalForm  userToInternalForm(double x, double y, double z, double theta); //finished port
 
@@ -105,6 +105,8 @@ int main(int argc, char* argv[])
 
 	TransformMatrix testA = TransformMatrix::userFormToTransformMatrix(337, 0, 135, 0);
 	TransformMatrix testB = TransformMatrix::userFormToTransformMatrix(337, 0, 35, 0);
+
+	//testing both multiply options
 	TransformMatrix testC = testA * testB;
 	TransformMatrix testD = TransformMatrix::transformMatrixMultiply(testA, testB);
 
