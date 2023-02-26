@@ -62,18 +62,11 @@ int main(int argc, char* argv[])
 {
 	double theta1 = 0, theta2 = 0, d3 = -200, theta4 = 0; // here for now
 
-
-	JOINT configA = { 0, 0, -200, 0 }; //JOINT R R P R
+	JOINT configA = { 0, 0, -200, 90 }; //JOINT R R P R
 	JOINT configB = { 0, 0, -100, 0 };
-	printf("Keep this window in focus, and...\n");
 
 	TransformMatrix::kinBaseToWrist(configA);
 	TransformMatrix::kinModules(configA);
-
-	char ch;
-	int c;
-
-	const int ESC = 27;
 
 	TransformMatrix identityTest = TransformMatrix();
 	matrixDouble rot = identityTest.getRotation();
@@ -122,6 +115,13 @@ int main(int argc, char* argv[])
 
 	createdTestI.printTransformMatrix();
 	createdTestJ.printTransformMatrix();
+
+
+	char ch;
+	int c;
+
+	const int ESC = 27;
+	printf("Keep this window in focus, and...\n");
 
 	printf("1:Press any key to continue \n");
 	printf("2:Press ESC to exit \n");
@@ -316,7 +316,7 @@ TransformMatrix TransformMatrix::transformMatrixMultiply(TransformMatrix lh, Tra
 
 TransformMatrix TransformMatrix::kinBaseToWrist(JOINT jointParameters)
 {
-	double theta1 = jointParameters[0], theta2 = jointParameters[1], d3 = jointParameters[2], theta4 = jointParameters[3];
+	double theta1 = DEG2RAD(jointParameters[0]), theta2 = DEG2RAD(jointParameters[1]), d3 = jointParameters[2], theta4 = DEG2RAD(jointParameters[3]);
 	double phi = theta1 + theta2 - theta4;
 	double theta12 = theta1 + theta2;
 
@@ -332,7 +332,8 @@ TransformMatrix TransformMatrix::kinBaseToWrist(JOINT jointParameters)
 
 TransformMatrix TransformMatrix::kinModules(JOINT jointParameters)
 {
-	double theta1 = jointParameters[0], theta2 = jointParameters[1], d3 = jointParameters[2], theta4 = jointParameters[3];
+	
+	double theta1 = DEG2RAD(jointParameters[0]), theta2 = DEG2RAD(jointParameters[1]), d3 = jointParameters[2], theta4 = DEG2RAD(jointParameters[3]);
 	TransformMatrix baseToOne({ {cos(theta1), -sin(theta1), 0, 0},
 						   {sin(theta1), cos(theta1), 0, 0},
 						   {0, 0, 1, L1},
@@ -345,7 +346,7 @@ TransformMatrix TransformMatrix::kinModules(JOINT jointParameters)
 
 	TransformMatrix twoToThree({ {1, 0, 0, L4},
 								 {0, -1, 0, 0},
-								 {0, 0, -1, -d3 - L5},
+								 {0, 0, -1, -d3-L5},
 								 {0, 0, 0, 1} });
 
 	TransformMatrix threeToFour({ {cos(theta4), -sin(theta4), 0, 0},
