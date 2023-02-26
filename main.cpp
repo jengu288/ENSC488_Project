@@ -316,6 +316,7 @@ TransformMatrix TransformMatrix::transformMatrixMultiply(TransformMatrix lh, Tra
 
 TransformMatrix TransformMatrix::kinBaseToWrist(JOINT jointParameters)
 {
+	//might be able to move this conversion to the user input part
 	double theta1 = DEG2RAD(jointParameters[0]), theta2 = DEG2RAD(jointParameters[1]), d3 = jointParameters[2], theta4 = DEG2RAD(jointParameters[3]);
 	double phi = theta1 + theta2 - theta4;
 	double theta12 = theta1 + theta2;
@@ -332,7 +333,7 @@ TransformMatrix TransformMatrix::kinBaseToWrist(JOINT jointParameters)
 
 TransformMatrix TransformMatrix::kinModules(JOINT jointParameters)
 {
-	
+	//might be able to move this conversion to the user input part
 	double theta1 = DEG2RAD(jointParameters[0]), theta2 = DEG2RAD(jointParameters[1]), d3 = jointParameters[2], theta4 = DEG2RAD(jointParameters[3]);
 	TransformMatrix baseToOne({ {cos(theta1), -sin(theta1), 0, 0},
 						   {sin(theta1), cos(theta1), 0, 0},
