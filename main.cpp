@@ -1,4 +1,4 @@
-// ProgrammingDemo.cpp : Defines the entry point for the console application.
+// main.cpp : Defines the entry point for the console application.
 //
 
 #include "stdafx.h"
@@ -244,7 +244,7 @@ void TransformMatrix::printTransformMatrix()
 	{
 		for (int j = 0; j < transform[i].size(); j++)
 		{
-			cout << transform[i][j] << " ";
+			cout << double(int(100*transform[i][j]))/100 << " ";
 		}
 
 		cout << endl;
@@ -260,7 +260,7 @@ void TransformMatrix::printRotation()
 	{
 		for (int j = 0; j < ROTATE_MATRIX_DIM; j++)
 		{
-			cout << rotationMat[i][j] << " ";
+			cout << double(int(100 * rotationMat[i][j])) / 100 << " ";
 		}
 
 		cout << endl;
@@ -274,7 +274,7 @@ void TransformMatrix::printPosition()
 	vector<double> positionVec = getPosition();
 	for (int i = 0; i < positionVec.size(); i++)
 	{
-		cout << positionVec[i] << " " << endl;
+		cout << double(int(100*positionVec[i]))/100 << " " << endl;
 	}
 }
 
@@ -284,7 +284,7 @@ void TransformMatrix::printUserForm()
 	cout << "User Form" << endl;
 	for (int i = 0; i < userForm.size(); i++)
 	{
-		cout << userForm[i] << " ";
+		cout << double(int(100*userForm[i]))/100 << " ";
 	}
 
 	cout << endl;
