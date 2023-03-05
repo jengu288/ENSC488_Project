@@ -127,8 +127,8 @@ int main(int argc, char* argv[])
 	printf("2:Press ESC to exit \n");
 
 	c = _getch();
-
-	while (1)
+	//provided while loop
+	/* while (1)
 	{
 		if (c != ESC)
 		{
@@ -149,11 +149,72 @@ int main(int argc, char* argv[])
 			c = _getch();
 		}
 		else
+			c = 0;
 			break;
+	}*/
 
+	//our ui while loop
+	while (1) {
+		if (c != ESC)
+		{
+			printf("Press 1 to specify joint values, 2 to specify a pose, 3 to grasp, or 4 to release \n");
+			ch = _getch();
 
+			if (ch == '1')
+			{
+				//Joint Values Specified
+				printf("Specify Joint Values:\n");
+				int jv1, jv2, jv3, jv4;
+				scanf_s("%d", &jv1);
+				scanf_s("%d", &jv2);
+				scanf_s("%d", &jv3);
+				scanf_s("%d", &jv4);
+				JOINT configX = { jv1, jv2, jv3, jv4 };
+				printf("Moving to specified joint variables!\n");
+				MoveToConfiguration(configX);
+				TransformMatrix specifiedTransform;
+				specifiedTransform = specifiedTransform.kinBaseToWrist(configX);
+				//print current pose
+				specifiedTransform.printPosition();
+			}
+				
+			else if (ch == '2')
+			{
+				//pose specified
+				printf("Specify Pose\n");
+				double x, y, z, theta;
+				scanf_s("%d", &x);
+				scanf_s("%d", &y);
+				scanf_s("%d", &z);
+				scanf_s("%d", &theta);
+				MoveToConfiguration(configB);
+				//print all possible solutions, indicate which are invalid
+			}
+			else if (ch == '3')
+			{
+				//grasp object
+				printf("Grasp Obj");
+				MoveToConfiguration(configB);
+				//print all possible solutions, indicate which are invalid
+			}
+			else if (ch == '4')
+			{
+				//release grasped object
+				printf("Release Grasped Obj");
+				MoveToConfiguration(configB);
+				//print all possible solutions, indicate which are invalid
+			}
+			else {
+				printf("Please enter a valid key. Trying again!");
+			}
+
+			printf("Press any key to continue \n");
+			printf("Press ESC to exit \n");
+			c = _getch();
+		}
+		else
+			break;
 	}
-
 
 	return 0;
 }
@@ -244,7 +305,7 @@ void TransformMatrix::printTransformMatrix()
 	{
 		for (int j = 0; j < transform[i].size(); j++)
 		{
-			cout << double(int(100*transform[i][j]))/100 << " ";
+			cout << double(round(100*transform[i][j]))/100 << " ";
 		}
 
 		cout << endl;
@@ -260,7 +321,7 @@ void TransformMatrix::printRotation()
 	{
 		for (int j = 0; j < ROTATE_MATRIX_DIM; j++)
 		{
-			cout << double(int(100 * rotationMat[i][j])) / 100 << " ";
+			cout << double(round(100 * rotationMat[i][j])) / 100 << " ";
 		}
 
 		cout << endl;
@@ -274,7 +335,7 @@ void TransformMatrix::printPosition()
 	vector<double> positionVec = getPosition();
 	for (int i = 0; i < positionVec.size(); i++)
 	{
-		cout << double(int(100*positionVec[i]))/100 << " " << endl;
+		cout << double(round(100*positionVec[i]))/100 << " " << endl;
 	}
 }
 
@@ -284,7 +345,7 @@ void TransformMatrix::printUserForm()
 	cout << "User Form" << endl;
 	for (int i = 0; i < userForm.size(); i++)
 	{
-		cout << double(int(100*userForm[i]))/100 << " ";
+		cout << double(round(100*userForm[i]))/100 << " ";
 	}
 
 	cout << endl;
