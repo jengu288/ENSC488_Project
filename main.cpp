@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
 {
 	double theta1 = 0, theta2 = 0, d3 = -200, theta4 = 0; // here for now
 
-	JOINT configA = { 0,0,0,0 };//{ 0, 0, -200, 90 }; //JOINT R R P R
+	JOINT configA = { 0.87,0,0,0 };//{ 0, 0, -200, 90 }; //JOINT R R P R
 	JOINT configB = { 0, 0, -100, 0 };
 
 	TransformMatrix::kinBaseToWrist(configA);
@@ -129,33 +129,33 @@ int main(int argc, char* argv[])
 
 	c = _getch();
 	//provided while loop
-	 while (1)
-	{
-		if (c != ESC)
-		{
-			printf("Press '1' or '2' \n");
-			ch = _getch();
+	/*// while (1)
+	//{
+	//	if (c != ESC)
+	//	{
+	//		printf("Press '1' or '2' \n");
+	//		ch = _getch();
 
-			if (ch == '1')
-			{
-				MoveToConfiguration(configA);
-			}
-			else if (ch == '2')
-			{
-				MoveToConfiguration(configB);
-			}
+	//		if (ch == '1')
+	//		{
+	//			MoveToConfiguration(configA);
+	//		}
+	//		else if (ch == '2')
+	//		{
+	//			MoveToConfiguration(configB);
+	//		}
 
-			printf("Press any key to continue \n");
-			printf("Press ESC to exit \n");
-			c = _getch();
-		}
-		else
-			c = 0;
-			break;
-	}
+	//		printf("Press any key to continue \n");
+	//		printf("Press ESC to exit \n");
+	//		c = _getch();
+	//	}
+	//	else
+	//		c = 0;
+	//		break;
+	//}*/
 
 	//our ui while loop
-	/*while (1) {
+	while (1) {
 		if (c != ESC)
 		{
 			printf("Press 1 to specify joint values, 2 to specify a pose, 3 to grasp, or 4 to release \n");
@@ -165,11 +165,17 @@ int main(int argc, char* argv[])
 			{
 				//Joint Values Specified
 				printf("Specify Joint Values:\n");
+				fflush(stdin);
 				int jv1, jv2, jv3, jv4;
+				fflush(stdin);
 				scanf_s("%d", &jv1);
+				fflush(stdin);
 				scanf_s("%d", &jv2);
+				fflush(stdin);
 				scanf_s("%d", &jv3);
+				fflush(stdin);
 				scanf_s("%d", &jv4);
+				fflush(stdin);
 				JOINT configX = { jv1, jv2, jv3, jv4 };
 				printf("Moving to specified joint variables!\n");
 				MoveToConfiguration(configX);
@@ -247,7 +253,7 @@ int main(int argc, char* argv[])
 		}
 		else
 			break;
-	}*/
+	}
 
 	return 0;
 }
