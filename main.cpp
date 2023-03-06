@@ -22,7 +22,7 @@ public:
 		//default constructor makes a 4x4 identity matrix
 	};
 
-	TransformMatrix(double x, double y, double z, double phi); //This gives us the base to wrist transform
+	TransformMatrix(double x, double y, double z, double phi); //This gives us the base to wrist transform from x y z phi
 	TransformMatrix(matrixDouble matrix);
 
 	matrixDouble getRotation();
@@ -46,6 +46,8 @@ public:
 	static TransformMatrix transformMatrixMultiply(TransformMatrix lh, TransformMatrix rh); //lh*rh since multiplication order matters for matrices
 	static TransformMatrix forKinBaseToWrist(JOINT jointParameters); //output is base to wrist transform matrix
 	static TransformMatrix forKinModules(JOINT jointParameters); //output is base to wrist transform matrix
+	static vector<double> where(JOINT joints, TransformMatrix TtoW, TransformMatrix StoB);
+
 	static vector<vector<double>> invKinBaseToWrist(TransformMatrix wRelB, JOINT current);
 
 	TransformMatrix operator*(TransformMatrix rh); //overloaded operator to do this*rh
@@ -63,7 +65,7 @@ int main(int argc, char* argv[])
 {
 	double theta1 = 0, theta2 = 0, d3 = -200, theta4 = 0; // here for now
 
-	JOINT configA = { 0,0, -200, 0 };//{ 0, 0, -200, 90 }; //JOINT R R P R
+	JOINT configA = { 0, 0, -200, 0 };//{ 0, 0, -200, 90 }; //JOINT R R P R
 	JOINT configB = { 0, 0, -200, 90 };
 
 	TransformMatrix::forKinBaseToWrist(configB);
@@ -116,7 +118,26 @@ int main(int argc, char* argv[])
 
 	createdTestI.printTransformMatrix();
 	createdTestJ.printTransformMatrix();
+	
+	//testing where and forward kin
+	matrixDouble wristToTool = { {1, 0, 0, 0},
+							   {0, 1, 0, 0},
+							   {0, 0, 1, 0},
+							   {0, 0, 0, 1} };
 
+	TransformMatrix WtoT(wristToTool);
+	matrixDouble stationToBase = { {1, 0, 0, 0},
+						   {0, 1, 0, 0},
+						   {0, 0, 1, 0},
+						   {0, 0, 0, 1} };
+	TransformMatrix StoB(stationToBase);
+	vector<double> testPose = TransformMatrix::where(configA, WtoT, StoB); //config A = 0 0 -200 0
+	cout << "testing where\n";
+	for (int i = 0; i < testPose.size(); i++)
+	{
+		cout << testPose[i] << " ";
+	}
+	cout << endl << endl;
 	*/
 	char ch;
 	int c;
@@ -129,7 +150,7 @@ int main(int argc, char* argv[])
 
 	c = _getch();
 	//provided while loop
-	/*// while (1)
+	// while (1)
 	//{
 	//	if (c != ESC)
 	//	{
@@ -465,6 +486,16 @@ TransformMatrix TransformMatrix::forKinModules(JOINT jointParameters)
 	cout << "This is from all the  transforms multiplied" << endl;
 	baseToFourModularized.printTransformMatrix();
 	return baseToFourModularized;
+}
+
+vector<double> TransformMatrix::where(JOINT joints, TransformMatrix WtoT, TransformMatrix StoB) {
+	TransformMatrix BtoW = forKinModules(joints); //defining frame 4 as wrist
+	TransformMatrix StoT = StoB * BtoW * WtoT;
+	matrixDouble transformStoT = StoT.getTransform();
+	double phi = atan2(transformStoT[1][0], transformStoT[0][0]);
+	vector<double> pose = { transformStoT[0][3], transformStoT[1][3], transformStoT[2][3], RAD2DEG(phi) };
+
+	return pose;
 }
 
 TransformMatrix TransformMatrix::operator*(TransformMatrix rh)
