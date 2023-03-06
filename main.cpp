@@ -22,7 +22,7 @@ public:
 		//default constructor makes a 4x4 identity matrix
 	};
 
-	TransformMatrix(double x, double y, double z, double phi);
+	TransformMatrix(double x, double y, double z, double phi); //This gives us the base to wrist transform
 	TransformMatrix(matrixDouble matrix);
 
 	matrixDouble getRotation();
@@ -44,8 +44,8 @@ public:
 	static TransformMatrix userFormToTransformMatrix(double x, double y, double z, double theta);
 	static vector<double> transformMatrixToUserForm(TransformMatrix transform);
 	static TransformMatrix transformMatrixMultiply(TransformMatrix lh, TransformMatrix rh); //lh*rh since multiplication order matters for matrices
-	static TransformMatrix kinBaseToWrist(JOINT jointParameters); //output is base to wrist transform matrix
-	static TransformMatrix kinModules(JOINT jointParameters);
+	static TransformMatrix forKinBaseToWrist(JOINT jointParameters); //output is base to wrist transform matrix
+	static TransformMatrix forKinModules(JOINT jointParameters); //output is base to wrist transform matrix
 	static vector<vector<double>> invKinBaseToWrist(TransformMatrix wRelB, JOINT current);
 
 	TransformMatrix operator*(TransformMatrix rh); //overloaded operator to do this*rh
@@ -63,11 +63,11 @@ int main(int argc, char* argv[])
 {
 	double theta1 = 0, theta2 = 0, d3 = -200, theta4 = 0; // here for now
 
-	JOINT configA = { 0.87,0,0,0 };//{ 0, 0, -200, 90 }; //JOINT R R P R
+	JOINT configA = { 0,-200,0,0 };//{ 0, 0, -200, 90 }; //JOINT R R P R
 	JOINT configB = { 0, 0, -100, 0 };
 
-	TransformMatrix::kinBaseToWrist(configA);
-	TransformMatrix::kinModules(configA);
+	TransformMatrix::forKinBaseToWrist(configA);
+	TransformMatrix::forKinModules(configA);
 
 	TransformMatrix identityTest = TransformMatrix();
 	matrixDouble rot = identityTest.getRotation();
@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
 	identityTest.setTransform(modifiedTransform);
 	identityTest.printTransformMatrix();
 
-	//Testing using 2 simply cases
+	//Testing using 2 simple cases
 	TransformMatrix testA = TransformMatrix::userFormToTransformMatrix(337, 0, 135, 0); // 0 0 -200 0 -> check these
 	TransformMatrix testB = TransformMatrix::userFormToTransformMatrix(337, 0, 35, 0); // 0 0 -100 0
 
@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
 			if (ch == '1')
 			{
 				//Joint Values Specified
-				printf("Specify Joint Values:\n");
+				printf("Specify Joint Values in the format: theta1 theta2 d3 theta 4\n");
 				fflush(stdin);
 				int jv1, jv2, jv3, jv4;
 				fflush(stdin);
@@ -180,7 +180,7 @@ int main(int argc, char* argv[])
 				printf("Moving to specified joint variables!\n");
 				MoveToConfiguration(configX);
 				TransformMatrix specifiedTransform;
-				specifiedTransform = specifiedTransform.kinBaseToWrist(configX);
+				specifiedTransform = specifiedTransform.forKinModules(configX);
 				//print current pose
 				specifiedTransform.printPosition();
 			}
@@ -262,7 +262,7 @@ TransformMatrix::TransformMatrix(double x, double y, double z, double phi)
 {
 	double angleInRad = DEG2RAD(phi);
 	transform = { {cos(angleInRad), sin(angleInRad), 0, x},
-				 {sin(angleInRad), cos(angleInRad), 0, y},
+				 {sin(angleInRad), -cos(angleInRad), 0, y},
 				 {0, 0 , -1, z},
 				 {0, 0, 0, 1} };
 
@@ -404,7 +404,10 @@ vector<double> TransformMatrix::transformMatrixToUserForm(TransformMatrix transf
 	userForm.push_back(transformMat.getPosition()[1]);
 	userForm.push_back(transformMat.getPosition()[2]);
 
-	userForm.push_back(RAD2DEG(acos(transformMat.getRotation()[0][0])));
+	double sinResult = transformMat.getRotation()[0][1];
+	double cosResult = transformMat.getRotation()[0][0];
+		
+	userForm.push_back(RAD2DEG(atan2(sinResult, cosResult)));
 
 	return userForm;
 }
@@ -414,7 +417,7 @@ TransformMatrix TransformMatrix::transformMatrixMultiply(TransformMatrix lh, Tra
 	return lh * rh; //uses overloaded operator
 }
 
-TransformMatrix TransformMatrix::kinBaseToWrist(JOINT jointParameters)
+TransformMatrix TransformMatrix::forKinBaseToWrist(JOINT jointParameters)
 {
 	//might be able to move this conversion to the user input part
 	double theta1 = DEG2RAD(jointParameters[0]), theta2 = DEG2RAD(jointParameters[1]), d3 = jointParameters[2], theta4 = DEG2RAD(jointParameters[3]);
@@ -431,7 +434,7 @@ TransformMatrix TransformMatrix::kinBaseToWrist(JOINT jointParameters)
 	return baseToWrist;
 }
 
-TransformMatrix TransformMatrix::kinModules(JOINT jointParameters)
+TransformMatrix TransformMatrix::forKinModules(JOINT jointParameters)
 {
 	//might be able to move this conversion to the user input part
 	double theta1 = DEG2RAD(jointParameters[0]), theta2 = DEG2RAD(jointParameters[1]), d3 = jointParameters[2], theta4 = DEG2RAD(jointParameters[3]);
