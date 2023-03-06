@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
 	TransformMatrix identityTest = TransformMatrix();
 	matrixDouble rot = identityTest.getRotation();
 
-	//test print functions
+	/*//test print functions
 	cout << "Print identity from TransformMatrix default constructor" << endl;
 	identityTest.printTransformMatrix();
 	identityTest.printPosition();
@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
 	createdTestI.printTransformMatrix();
 	createdTestJ.printTransformMatrix();
 
-
+	*/
 	char ch;
 	int c;
 
@@ -219,9 +219,9 @@ int main(int argc, char* argv[])
 					configX[1] = retVec[1][1];
 					configX[2] = retVec[1][2];
 					configX[3] = retVec[1][3];
-					printf("Calculated Joint Variables: %lf,%lf,%lf,%lf\n",configX[0],configX[1],configX[2],configX[3]);
+					printf("Calculated Joint Variables: %lf,%lf,%lf,%lf\n",configX[0] * 180 / PI,configX[1] * 180 / PI,configX[2],configX[3] * 180 / PI);
 					if (retVec.size() > 2) {
-						printf("surprise bitch there was another worse solution:%lf,%lf,%lf,%lf\n",retVec[2][0],retVec[2][1],retVec[2][2],retVec[2][3]);
+						printf("surprise bitch there was another worse solution:%lf,%lf,%lf,%lf\n",retVec[2][0]*180/PI,retVec[2][1] * 180 / PI,retVec[2][2],retVec[2][3] * 180 / PI);
 					}
 					
 					MoveToConfiguration(configX);
@@ -533,9 +533,15 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 			//no solution.
 			continue; //if theta 2 has no solutions, there are no solutions at all
 		}
-		theta2 = atan2(pow(-1,i)*sqrt(1 - ((pow(x, 2) + pow(y, 2) - pow(L4, 2) - pow(L2, 2)) / (2 * L2 * L4))), (pow(x, 2) + pow(y, 2) - pow(L4, 2) - pow(L2, 2)) / (2 * L2 * L4));
+		theta2 = atan2(pow(-1,i)*sqrt(1 - pow(((pow(x, 2) + pow(y, 2) - pow(L4, 2) - pow(L2, 2)) / (2 * L2 * L4)),2)), (pow(x, 2) + pow(y, 2) - pow(L4, 2) - pow(L2, 2)) / (2 * L2 * L4));
 		if (theta2 == 0 && i == 0) { //prevent duplicate solutions returned
 			continue;
+		}
+		if (theta2 > PI) {
+			theta2 = theta2 - 2*PI;
+		}
+		else if (theta2 < -PI) {
+			theta2 = theta2 + 2 * PI;
 		}
 		double a = L4 * cos(theta2) + L2;
 		double b = L4 * sin(theta2);
@@ -548,8 +554,14 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 				continue;
 			}
 		}
-		else {
-			theta1 = atan2(a * y - b * x, a * x + b * y);
+		else {//ax-by
+			theta1 = atan2((a * y) - (b * x), (a * x) + (b * y));
+		}
+		if (theta1 > PI) {
+			theta1 = theta1 - 2 * PI;
+		}
+		else if (theta1 < -PI) {
+			theta1 = theta1 + 2 * PI;
 		}
 		double r11 = wRelB.getRotation()[0][0];
 		double r21 = wRelB.getRotation()[1][0];
@@ -558,7 +570,13 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 			continue;
 		}
 		else {
-			theta4 = -atan(r21 / r11) + theta1 + theta2;
+			theta4 = -atan2(r21, r11) + theta1 + theta2;
+		}
+		if (theta4 > PI) {
+			theta4 = theta4 - 2 * PI;
+		}
+		else if (theta4 < -PI) {
+			theta4 = theta4 + 2 * PI;
 		}
 		d3 = L1 - z + L3 - L5 - L6;
 		vector<double>solutionElms;
