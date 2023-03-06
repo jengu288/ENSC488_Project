@@ -256,7 +256,7 @@ TransformMatrix::TransformMatrix(double x, double y, double z, double phi)
 {
 	double angleInRad = DEG2RAD(phi);
 	transform = { {cos(angleInRad), sin(angleInRad), 0, x},
-				 {sin(angleInRad), -cos(angleInRad), 0, y},
+				 {sin(angleInRad), cos(angleInRad), 0, y},
 				 {0, 0 , -1, z},
 				 {0, 0, 0, 1} };
 
@@ -416,7 +416,7 @@ TransformMatrix TransformMatrix::kinBaseToWrist(JOINT jointParameters)
 	double theta12 = theta1 + theta2;
 
 	TransformMatrix baseToWrist({ {cos(phi), sin(phi), 0, L4 * cos(theta12) + L2 * cos(theta1)},
-							   {sin(phi),-cos(phi), 0, L4 * sin(theta12) + L2 * sin(theta1)},
+							   {sin(phi), cos(phi), 0, L4 * sin(theta12) + L2 * sin(theta1)},
 							   {0, 0, -1, -d3 - L5 - L6 + L3 + L1},
 							   {0, 0, 0, 1} });
 
