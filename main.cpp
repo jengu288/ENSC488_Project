@@ -537,9 +537,9 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 		if (theta2 == 0 && i == 0) { //prevent duplicate solutions returned
 			continue;
 		}
-		double a_1 = L4 * cos(theta2) + L2;
-		double b_1 = L4 * sin(theta2);
-		if (a_1 == 0 && b_1 == 0) {
+		double a = L4 * cos(theta2) + L2;
+		double b = L4 * sin(theta2);
+		if (a == 0 && b == 0) {
 			if (x == 0 && y == 0) {
 				theta1 = current[0];
 			}
@@ -549,7 +549,7 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 			}
 		}
 		else {
-			theta1 = atan2(a_1 * y - b_1 * x, a_1 * x + b_1 * y);
+			theta1 = atan2(a * y - b * x, a * x + b * y);
 		}
 		double r11 = wRelB.getRotation()[0][0];
 		double r21 = wRelB.getRotation()[1][0];
