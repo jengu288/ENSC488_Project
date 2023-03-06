@@ -63,11 +63,11 @@ int main(int argc, char* argv[])
 {
 	double theta1 = 0, theta2 = 0, d3 = -200, theta4 = 0; // here for now
 
-	JOINT configA = { 0,-200,0,0 };//{ 0, 0, -200, 90 }; //JOINT R R P R
-	JOINT configB = { 0, 0, -100, 0 };
+	JOINT configA = { 0,0, -200, 0 };//{ 0, 0, -200, 90 }; //JOINT R R P R
+	JOINT configB = { 0, 0, -200, 90 };
 
-	TransformMatrix::forKinBaseToWrist(configA);
-	TransformMatrix::forKinModules(configA);
+	TransformMatrix::forKinBaseToWrist(configB);
+	TransformMatrix::forKinModules(configB);
 
 	TransformMatrix identityTest = TransformMatrix();
 	matrixDouble rot = identityTest.getRotation();
@@ -425,7 +425,7 @@ TransformMatrix TransformMatrix::forKinBaseToWrist(JOINT jointParameters)
 	double theta12 = theta1 + theta2;
 
 	TransformMatrix baseToWrist({ {cos(phi), sin(phi), 0, L4 * cos(theta12) + L2 * cos(theta1)},
-							   {sin(phi), cos(phi), 0, L4 * sin(theta12) + L2 * sin(theta1)},
+							   {sin(phi), -cos(phi), 0, L4 * sin(theta12) + L2 * sin(theta1)},
 							   {0, 0, -1, -d3 - L5 - L6 + L3 + L1},
 							   {0, 0, 0, 1} });
 
