@@ -12,6 +12,7 @@ using namespace std;
 
 const int ROTATE_MATRIX_DIM = 3;
 const double L1 = 405, L2 = 195, L3 = 70, L4 = 142, L5 = 270, L6 = 270; //in mm
+const double j1MinLim = -2.61799, j1MaxLim = 2.61799, j2MinLim = -1.745329, j2MaxLim = 1.745329, j3MinLim = -200, j3MaxLim = -100, j4MinLim = -2.792527, j4MaxLim = 2.792527;
 
 typedef vector<vector<double>> matrixDouble;
 
@@ -546,6 +547,12 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 		else if (theta2 < -PI) {
 			theta2 = theta2 + 2 * PI;
 		}
+		if (theta2 > j2MaxLim) {
+			continue;
+		}
+		else if (theta2 < j2MinLim) {
+			continue;
+		}
 		double a = L4 * cos(theta2) + L2;
 		double b = L4 * sin(theta2);
 		if (a == 0 && b == 0) {
@@ -566,6 +573,12 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 		else if (theta1 < -PI) {
 			theta1 = theta1 + 2 * PI;
 		}
+		if (theta1 > j1MaxLim) {
+			continue;
+		}
+		else if (theta1 < j1MinLim) {
+			continue;
+		}
 		double r11 = wRelB.getRotation()[0][0];
 		double r21 = wRelB.getRotation()[1][0];
 		if (r11 == 0) {
@@ -581,7 +594,19 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 		else if (theta4 < -PI) {
 			theta4 = theta4 + 2 * PI;
 		}
+		if (theta4 > j4MaxLim) {
+			continue;
+		}
+		else if (theta4 < j4MinLim) {
+			continue;
+		}
 		d3 = L1 - z + L3 - L5 - L6;
+		if (d3 > j3MaxLim) {
+			continue;
+		}
+		else if (d3 < j3MinLim) {
+			continue;
+		}
 		vector<double>solutionElms;
 		solutionElms.push_back(theta1);
 		solutionElms.push_back(theta2);
@@ -618,9 +643,3 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 	}
 	return returnVec;
 	}
-	
-	
-
-
-
-
