@@ -46,6 +46,7 @@ public:
 	static TransformMatrix transformMatrixMultiply(TransformMatrix lh, TransformMatrix rh); //lh*rh since multiplication order matters for matrices
 	static TransformMatrix kinBaseToWrist(JOINT jointParameters); //output is base to wrist transform matrix
 	static TransformMatrix kinModules(JOINT jointParameters);
+	static vector<vector<double>> invKinBaseToWrist(TransformMatrix wRelB, JOINT current);
 
 	TransformMatrix operator*(TransformMatrix rh); //overloaded operator to do this*rh
 
@@ -62,7 +63,7 @@ int main(int argc, char* argv[])
 {
 	double theta1 = 0, theta2 = 0, d3 = -200, theta4 = 0; // here for now
 
-	JOINT configA = { 0, 0, -200, 90 }; //JOINT R R P R
+	JOINT configA = { 0,0,0,0 };//{ 0, 0, -200, 90 }; //JOINT R R P R
 	JOINT configB = { 0, 0, -100, 0 };
 
 	TransformMatrix::kinBaseToWrist(configA);
@@ -128,7 +129,7 @@ int main(int argc, char* argv[])
 
 	c = _getch();
 	//provided while loop
-	/* while (1)
+	 while (1)
 	{
 		if (c != ESC)
 		{
@@ -151,10 +152,10 @@ int main(int argc, char* argv[])
 		else
 			c = 0;
 			break;
-	}*/
+	}
 
 	//our ui while loop
-	while (1) {
+	/*while (1) {
 		if (c != ESC)
 		{
 			printf("Press 1 to specify joint values, 2 to specify a pose, 3 to grasp, or 4 to release \n");
@@ -183,11 +184,43 @@ int main(int argc, char* argv[])
 				//pose specified
 				printf("Specify Pose\n");
 				double x, y, z, theta;
-				scanf_s("%d", &x);
-				scanf_s("%d", &y);
-				scanf_s("%d", &z);
-				scanf_s("%d", &theta);
-				MoveToConfiguration(configB);
+				fflush(stdin);
+				scanf_s("%lf", &x);
+				printf("x:%lf\n",x);
+				fflush(stdin);
+				scanf_s("%lf", &y);
+				fflush(stdin);
+				printf("y:%lf\n",y);
+				fflush(stdin);
+				scanf_s("%lf", &z);
+				fflush(stdin);
+				printf("z:%lf\n", z);
+				fflush(stdin);
+				scanf_s("%lf", &theta);
+				fflush(stdin);
+				printf("theta:%lf\n", theta);
+				fflush(stdin);
+				TransformMatrix specifiedTransform;
+				specifiedTransform = specifiedTransform.userFormToTransformMatrix(x, y, z, theta);
+				JOINT configX;
+				GetConfiguration(configX);
+				vector<vector<double>>retVec = specifiedTransform.invKinBaseToWrist(specifiedTransform, configX);
+				if (retVec[0][0] == 0) {
+					printf("sorry sweetie no solution\n");
+				}
+				else {
+					configX[0] = retVec[1][0];
+					configX[1] = retVec[1][1];
+					configX[2] = retVec[1][2];
+					configX[3] = retVec[1][3];
+					printf("Calculated Joint Variables: %lf,%lf,%lf,%lf\n",configX[0],configX[1],configX[2],configX[3]);
+					if (retVec.size() > 2) {
+						printf("surprise bitch there was another worse solution:%lf,%lf,%lf,%lf\n",retVec[2][0],retVec[2][1],retVec[2][2],retVec[2][3]);
+					}
+					
+					MoveToConfiguration(configX);
+				}
+				//MoveToConfiguration(configX);
 				//print all possible solutions, indicate which are invalid
 			}
 			else if (ch == '3')
@@ -214,7 +247,7 @@ int main(int argc, char* argv[])
 		}
 		else
 			break;
-	}
+	}*/
 
 	return 0;
 }
@@ -471,4 +504,96 @@ void TransformMatrix::invert()
 	this->setPosition(inversePos);
 	this->setRotation(transposedRot);
 }
+
+vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB, JOINT current) {
+	bool sol;
+	double theta1, theta2, d3, theta4, x, y, z;
+	vector<double> pos = wRelB.getPosition();
+	x = pos[0];
+	y = pos[1];
+	z = pos[2];
+	vector<double>nearestSolution{0};
+	vector<double>farthestSolution{0};
+	vector<double>existsSolution{0};
+	vector < vector<double> > returnVec;
+	returnVec.push_back(existsSolution);
+	/*returnVec.push_back(nearestSolution);
+	returnVec.push_back(farthestSolution);*/
+
+	
+	vector<vector<double>>solutions;
+	for (size_t i = 0; i < 2; i++){
+		if ((pow(x, 2) + pow(y, 2) - pow(L4, 2) - pow(L2, 2)) / (2 * L2 * L4) > 1) {
+			//no solution.
+			continue; //if theta 2 has no solutions, there are no solutions at all
+		}
+		theta2 = atan2(pow(-1,i)*sqrt(1 - ((pow(x, 2) + pow(y, 2) - pow(L4, 2) - pow(L2, 2)) / (2 * L2 * L4))), (pow(x, 2) + pow(y, 2) - pow(L4, 2) - pow(L2, 2)) / (2 * L2 * L4));
+		if (theta2 == 0 && i == 0) { //prevent duplicate solutions returned
+			continue;
+		}
+		double a_1 = L4 * cos(theta2) + L2;
+		double b_1 = L4 * sin(theta2);
+		if (a_1 == 0 && b_1 == 0) {
+			if (x == 0 && y == 0) {
+				theta1 = current[0];
+			}
+			else if (x != 0 || y != 0) {
+				//zero solutions
+				continue;
+			}
+		}
+		else {
+			theta1 = atan2(a_1 * y - b_1 * x, a_1 * x + b_1 * y);
+		}
+		double r11 = wRelB.getRotation()[0][0];
+		double r21 = wRelB.getRotation()[1][0];
+		if (r11 == 0) {
+			//no solution
+			continue;
+		}
+		else {
+			theta4 = -atan(r21 / r11) + theta1 + theta2;
+		}
+		d3 = L1 - z + L3 - L5 - L6;
+		vector<double>solutionElms;
+		solutionElms.push_back(theta1);
+		solutionElms.push_back(theta2);
+		solutionElms.push_back(d3);
+		solutionElms.push_back(theta4);
+		solutions.push_back(solutionElms);
+		}
+	if (solutions.size() == 0){
+		return returnVec;
+	}
+	if (solutions.size() == 1) {
+		returnVec[0] = { 1 }; //boolean:exists solution
+		returnVec.push_back(solutions[0]); //only one possible solution, return vec will have 2 elements
+		return returnVec;
+	}
+
+	vector<double>distances;
+	for (size_t i = 0; i < solutions.size(); i++){
+		distances.push_back(sqrt(pow(current[0]*3.14159265/180 - solutions[i][0], 2) + pow(current[1]* 3.14159265 /180 - solutions[i][1], 2) + pow(current[2] - solutions[i][2], 2) + pow(current[3]* 3.14159265 /180 - solutions[i][3], 2)));
+	}
+	int minDistIndex = 0;
+	for (size_t i = 0; i < distances.size(); i++){
+		if (distances[i] < distances[minDistIndex]){
+			minDistIndex = i;
+		}
+	}
+	returnVec[0] = { 1 }; //boolean:exists solution
+	returnVec.push_back(solutions[minDistIndex]);
+	if (minDistIndex == 1) {
+		returnVec.push_back(solutions[0]);
+	}
+	else {
+		returnVec.push_back(solutions[1]);
+	}
+	return returnVec;
+	}
+	
+	
+
+
+
 
