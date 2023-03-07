@@ -67,97 +67,22 @@ private:
 
 int main(int argc, char* argv[])
 {
-	/*
-	double theta1 = 0, theta2 = 0, d3 = -200, theta4 = 0; // here for now
-
-	JOINT configA = { 0, 0, -200, 180 };//{ 0, 0, -200, 90 }; //JOINT R R P R
-	JOINT configB = { 0, 0, -200, 90 };
-
-
-	cout << "This is from derived base to wrist transform" << endl;
-	TransformMatrix::forKinBaseToWrist(configB).printTransformMatrix();
-
-	cout << "This is from all the separate transforms multiplied" << endl;
-	TransformMatrix::forKinModules(configB).printTransformMatrix();
-
-	TransformMatrix identityTest = TransformMatrix();
-	matrixDouble rot = identityTest.getRotation();
-
-	//test print functions
-	cout << "Print identity from TransformMatrix default constructor" << endl;
-	identityTest.printTransformMatrix();
-	identityTest.printPosition();
-	identityTest.printRotation();
-
-	//test set rotation function
-	cout << "Set the rotation[0][0] to 2 using setRotation()" << endl;
-	rot[0][0] = rot[0][0] * 2;
-	identityTest.setRotation(rot);
-	identityTest.printTransformMatrix();
-
-	//testing set transform function
-	cout << "Set the transformation[1][1] to 37 using setTransformation()" << endl;
-	matrixDouble modifiedTransform = identityTest.getTransform();
-	modifiedTransform[1][1] = 37;
-	identityTest.setTransform(modifiedTransform);
-	identityTest.printTransformMatrix();
-
-	//Testing using 2 simple cases
-	TransformMatrix testA = TransformMatrix::userFormToTransformMatrix(337, 0, 135, 0); // 0 0 -200 0 -> check these
-	TransformMatrix testB = TransformMatrix::userFormToTransformMatrix(337, 0, 35, 0); // 0 0 -100 0
-
-	testA.printTransformMatrix();
-	testB.printTransformMatrix();
-	testA.printUserForm();
-	testB.printUserForm();
-
-	//testing both multiply options
-	TransformMatrix testC = testA * testB;
-	TransformMatrix testD = TransformMatrix::transformMatrixMultiply(testA, testB);
-	testC.printTransformMatrix();
-	testD.printTransformMatrix();
-
-	//test invert function
-	testA.invert();
-	testA.printTransformMatrix();
-
-	//custom test cases
-	TransformMatrix createdTestI = TransformMatrix::userFormToTransformMatrix(5, 8, 2, 83); // x, y, z, phi form input
-	TransformMatrix createdTestJ = TransformMatrix::userFormToTransformMatrix(2, 4, 7, 12);
-
-	createdTestI.printTransformMatrix();
-	createdTestJ.printTransformMatrix();
-	*/
-	//testing where and forward kin
 	matrixDouble wristToTool = { {1, 0, 0, 0},
 							   {0, 1, 0, 0},
 							   {0, 0, 1, 0},
 							   {0, 0, 0, 1} };
-
 	TransformMatrix WtoT(wristToTool);
+
 	matrixDouble stationToBase = { {1, 0, 0, 0},
 						   {0, 1, 0, 0},
 						   {0, 0, 1, 0},
 						   {0, 0, 0, 1} };
-
-	
 	TransformMatrix StoB(stationToBase);
-	/*
-	vector<double> testPose = TransformMatrix::where(configA, WtoT, StoB); 
-	cout << "testing where\n";
-	for (int i = 0; i < testPose.size(); i++)
-	{
-		cout << testPose[i] << " ";
-	}
-	cout << endl;
-	
-	cout << "testing solve\n";
-	vector<double> testJointVars = TransformMatrix::solve(0, 337, 135, 90, WtoT, StoB); //expected out = 0 0 -200 0
-	*/
+
 	char ch;
 	int c;
-
 	const int ESC = 27;
+
 	printf("\\:D/ Welcome to the ROBOSIM Controller Panel! \\:D/\n");
 	printf("-------------------------------------------------\n");
 	printf("1: Start \n");
@@ -165,7 +90,6 @@ int main(int argc, char* argv[])
 	printf("-------------------------------------------------\n");
 
 	c = _getch();
-	//our ui while loop
 	while (1) {
 		if (c != ESC)
 		{
