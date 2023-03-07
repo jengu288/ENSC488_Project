@@ -560,13 +560,12 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 	x = pos[0];
 	y = pos[1];
 	z = pos[2];
-	vector<double>nearestSolution{0};
-	vector<double>farthestSolution{0};
+
 	vector<double>existsSolution{0};
-	vector < vector<double> > returnVec;
+
+	vector<vector<double>> returnVec;
 	returnVec.push_back(existsSolution);
-	/*returnVec.push_back(nearestSolution);
-	returnVec.push_back(farthestSolution);*/
+
 
 	
 	vector<vector<double>>solutions;
@@ -575,6 +574,8 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 			//no solution.
 			continue; //if theta 2 has no solutions, there are no solutions at all
 		}
+		
+		//theta2 is in radians here
 		theta2 = atan2(pow(-1,i)*sqrt(1 - pow(((pow(x, 2) + pow(y, 2) - pow(L4, 2) - pow(L2, 2)) / (2 * L2 * L4)),2)), (pow(x, 2) + pow(y, 2) - pow(L4, 2) - pow(L2, 2)) / (2 * L2 * L4));
 		if (theta2 == 0 && i == 0) { //prevent duplicate solutions returned
 			continue;
@@ -598,6 +599,7 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 			}
 		}
 		else {//ax-by
+			//theta 1 is in radians
 			theta1 = atan2((a * y) - (b * x), (a * x) + (b * y));
 		}
 		if (theta1 > PI) {
@@ -647,24 +649,24 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 		if (jLimViolation) {
 			continue;
 		}
-
-		vector<double>solutionElms;
-		solutionElms.push_back(theta1);
-		solutionElms.push_back(theta2);
-		solutionElms.push_back(d3);
-		solutionElms.push_back(theta4);
-		solutions.push_back(solutionElms);
+		vector<double>solutionElements;
+		solutionElements.push_back(theta1);
+		solutionElements.push_back(theta2);
+		solutionElements.push_back(d3);
+		solutionElements.push_back(theta4);
+		solutions.push_back(solutionElements);
 		}
 	if (solutions.size() == 0){
 		return returnVec;
 	}
 	if (solutions.size() == 1) {
-		returnVec[0] = { 1 }; //boolean:exists solution
-		returnVec.push_back(solutions[0]); //only one possible solution, return vec will have 2 elements
+		returnVec[0] = { 1 }; //flag:exists solution
+		returnVec.push_back(solutions[0]); //only one possible solution, returnVec will have 2 elements, flag and solution
 		printf("the distance is: %lf\n", sqrt(pow(current[0] * 3.14159265 / 180 - solutions[0][0], 2) + pow(current[1] * 3.14159265 / 180 - solutions[0][1], 2) + pow(current[2] - solutions[0][2], 2) + pow(current[3] * 3.14159265 / 180 - solutions[0][3], 2)));
 		return returnVec;
 	}
 
+	//if there are multiple solutions possible
 	vector<double>distances;
 	for (size_t i = 0; i < solutions.size(); i++){
 		distances.push_back(sqrt(pow(current[0]*3.14159265/180 - solutions[i][0], 2) + pow(current[1]* 3.14159265 /180 - solutions[i][1], 2) + pow(current[2] - solutions[i][2], 2) + pow(current[3]* 3.14159265 /180 - solutions[i][3], 2)));
@@ -698,6 +700,7 @@ vector<double> TransformMatrix::solve(double x, double y, double z, double phi, 
 
 	JOINT currentJointVars;
 	GetConfiguration(currentJointVars);
+	//output of invKin is in radians for joint angles
 	vector<vector<double>> solutions = invKinBaseToWrist(BtoW, currentJointVars);
 
 	if (solutions[0][0] != 0) {
