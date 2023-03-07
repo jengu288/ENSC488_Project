@@ -42,9 +42,13 @@ public:
 
 	void invert();
 
+	//Requested functions for Demo1, names may have been modfied for clarification
 	static TransformMatrix userFormToTransformMatrix(double x, double y, double z, double theta);
 	static vector<double> transformMatrixToUserForm(TransformMatrix transform);
+
 	static TransformMatrix transformMatrixMultiply(TransformMatrix lh, TransformMatrix rh); //lh*rh since multiplication order matters for matrices
+	TransformMatrix operator*(TransformMatrix rh); //overloaded operator to do this*rh
+
 	static TransformMatrix forKinBaseToWrist(JOINT jointParameters); //output is base to wrist transform matrix
 	static TransformMatrix forKinModules(JOINT jointParameters); //output is base to wrist transform matrix
 	static vector<double> where(JOINT joints, TransformMatrix TtoW, TransformMatrix StoB);
@@ -52,10 +56,8 @@ public:
 	static vector<vector<double>> invKinBaseToWrist(TransformMatrix wRelB, JOINT current);
 	static vector<double> solve(double x, double y, double z, double phi, TransformMatrix StoB, TransformMatrix WtoT);
 
-	TransformMatrix operator*(TransformMatrix rh); //overloaded operator to do this*rh
-
+	//Helper Functions
 	static double customRound(double num);
-
 
 private:
 	matrixDouble transform = { {1, 0, 0, 0},
@@ -69,7 +71,7 @@ int main(int argc, char* argv[])
 {
 	matrixDouble wristToTool = { {1, 0, 0, 0},
 							   {0, 1, 0, 0},
-							   {0, 0, 1, 0},
+							   {0, 0, 1, 10}, //assign z as 10 in according 
 							   {0, 0, 0, 1} };
 	TransformMatrix WtoT(wristToTool);
 
