@@ -160,43 +160,17 @@ int main(int argc, char* argv[])
 	const int ESC = 27;
 	printf("\\:D/ Welcome to the ROBOSIM Controller Panel! \\:D/\n");
 	printf("-------------------------------------------------\n");
-
 	printf("1: Start \n");
 	printf("E: Exit by Pressing ESC \n");
+	printf("-------------------------------------------------\n");
 
 	c = _getch();
-	//provided while loop
-	// while (1)
-	//{
-	//	if (c != ESC)
-	//	{
-	//		printf("Press '1' or '2' \n");
-	//		ch = _getch();
-
-	//		if (ch == '1')
-	//		{
-	//			MoveToConfiguration(configA);
-	//		}
-	//		else if (ch == '2')
-	//		{
-	//			MoveToConfiguration(configB);
-	//		}
-
-	//		printf("Press any key to continue \n");
-	//		printf("Press ESC to exit \n");
-	//		c = _getch();
-	//	}
-	//	else
-	//		c = 0;
-	//		break;
-	//}*/
-
 	//our ui while loop
 	while (1) {
 		if (c != ESC)
 		{
 			printf("\nOptions:\n");
-			printf("Press 1 to specify joint values and move. \nPress 2 to specify a pose and move. \nPress 3 to grasp. \nPress 4 to release. \nPress ESC to end.\n");
+			printf("1: Specify joint values and move robot to that position. \n2: Specify a pose and move robot to that position. \n3: Grasp. \n4: Release. \nE: Exit by Pressing ESC \n");
 			ch = _getch();
 
 			if (ch == '1') //Joint Values Specified
@@ -229,26 +203,19 @@ int main(int argc, char* argv[])
 			}
 			else if (ch == '2') //Inverse Kinematics: Pose Specified
 			{
-				printf("Specify Pose in degrees and mm in the order: x y z theta\n");
-				double x, y, z, theta;
+				printf("Specify Pose in degrees and mm in the order: x y z phi\n");
+				double x, y, z, phi;
 				fflush(stdin);
 				scanf_s("%lf", &x);
-				printf("x:%lf\n", x);
 				fflush(stdin);
 				scanf_s("%lf", &y);
 				fflush(stdin);
-				printf("y:%lf\n", y);
-				fflush(stdin);
 				scanf_s("%lf", &z);
 				fflush(stdin);
-				printf("z:%lf\n", z);
-				fflush(stdin);
-				scanf_s("%lf", &theta);
-				fflush(stdin);
-				printf("theta:%lf\n", theta);
+				scanf_s("%lf", &phi);
 				fflush(stdin);
 				TransformMatrix specifiedTransform;
-				specifiedTransform = specifiedTransform.userFormToTransformMatrix(x, y, z, theta);
+				specifiedTransform = specifiedTransform.userFormToTransformMatrix(x, y, z, phi);
 				JOINT configIK;
 				GetConfiguration(configIK);
 				vector<vector<double>>retVec = specifiedTransform.invKinBaseToWrist(specifiedTransform, configIK);
@@ -260,22 +227,22 @@ int main(int argc, char* argv[])
 					configIK[1] = retVec[1][1];
 					configIK[2] = retVec[1][2];
 					configIK[3] = retVec[1][3];
-					printf("Calculated Joint Variables: %lf,%lf,%lf,%lf\n", configIK[0] * 180 / PI, configIK[1] * 180 / PI, configIK[2], configIK[3] * 180 / PI);
+					printf("Calculated Joint Variables: %.2f,%.2f,%.2f,%.2f\n", configIK[0] * 180 / PI, configIK[1] * 180 / PI, configIK[2], configIK[3] * 180 / PI);
 					if (retVec.size() > 2) {
-						printf("Another worse solution: % lf, % lf, % lf, % lf\n", retVec[2][0] * 180 / PI, retVec[2][1] * 180 / PI, retVec[2][2], retVec[2][3] * 180 / PI);
+						printf("Another worse solution: %.2f, %.2f, %.2f, %.2f\n", retVec[2][0] * 180 / PI, retVec[2][1] * 180 / PI, retVec[2][2], retVec[2][3] * 180 / PI);
 					}
 					MoveToConfiguration(configIK, true);
 				}
 			}
 			else if (ch == '3') // grasp
 			{
-				printf("Grasp Object");
-				Grasp(1);
+				printf("Grasp Object\n");
+				Grasp(true);
 			}
 			else if (ch == '4') // release
 			{
-				printf("Release Grasped Object");
-				Grasp(0);
+				printf("Release Grasped Object\n");
+				Grasp(false);
 			}
 			else if (ch == ESC) {
 				break;
