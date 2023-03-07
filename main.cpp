@@ -158,10 +158,11 @@ int main(int argc, char* argv[])
 	int c;
 
 	const int ESC = 27;
-	printf("Keep this window in focus, and...\n");
+	printf("\\:D/ Welcome to the ROBOSIM Controller Panel! \\:D/\n");
+	printf("-------------------------------------------------\n");
 
-	printf("1:Press any key to continue \n");
-	printf("2:Press ESC to exit \n");
+	printf("1: Start \n");
+	printf("E: Exit by Pressing ESC \n");
 
 	c = _getch();
 	//provided while loop
