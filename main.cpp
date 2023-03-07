@@ -16,6 +16,7 @@ const double j1MinLim = -2.61799, j1MaxLim = 2.61799, j2MinLim = -1.745329, j2Ma
 
 typedef vector<vector<double>> matrixDouble;
 
+
 class TransformMatrix
 {
 public:
@@ -53,6 +54,8 @@ public:
 	static vector<double> solve(double x, double y, double z, double phi, TransformMatrix StoB, TransformMatrix WtoT);
 
 	TransformMatrix operator*(TransformMatrix rh); //overloaded operator to do this*rh
+
+	static double customRound(double num);
 
 
 private:
@@ -370,7 +373,7 @@ void TransformMatrix::printTransformMatrix()
 	{
 		for (int j = 0; j < transform[i].size(); j++)
 		{
-			cout << double(round(100*transform[i][j]))/100 << " ";
+			cout << customRound(transform[i][j]) << " ";
 		}
 
 		cout << endl;
@@ -386,7 +389,7 @@ void TransformMatrix::printRotation()
 	{
 		for (int j = 0; j < ROTATE_MATRIX_DIM; j++)
 		{
-			cout << double(round(100 * rotationMat[i][j])) / 100 << " ";
+			cout << customRound(rotationMat[i][j]) << " ";
 		}
 
 		cout << endl;
@@ -400,7 +403,7 @@ void TransformMatrix::printPosition()
 	vector<double> positionVec = getPosition();
 	for (int i = 0; i < positionVec.size(); i++)
 	{
-		cout << double(round(100*positionVec[i]))/100 << " " << endl;
+		cout << customRound(positionVec[i]) << " " << endl;
 	}
 }
 
@@ -410,7 +413,7 @@ void TransformMatrix::printUserForm()
 	cout << "User Form" << endl;
 	for (int i = 0; i < userForm.size(); i++)
 	{
-		cout << double(round(100*userForm[i]))/100 << " ";
+		cout << customRound(userForm[i]) << " ";
 	}
 
 	cout << endl;
@@ -700,14 +703,18 @@ vector<double> TransformMatrix::solve(double x, double y, double z, double phi, 
 			}
 		}
 		cout << "The closest solution that does not violate joint limits is:\n";
-		cout << "Theta 1 = " << double(round(100 * closest[0])) / 100;
-		cout << "\nTheta 2 = " << double(round(100 * closest[1])) / 100;
-		cout << "\nDist 3 = " << double(round(100 * closest[2])) / 100;
-		cout << "\nTheta 4 = " << double(round(100 * closest[3])) / 100 << endl;
+		cout << "Theta 1 = " << customRound(closest[0]);
+		cout << "\nTheta 2 = " << customRound(closest[1]);
+		cout << "\nDist 3 = " << customRound(closest[2]);
+		cout << "\nTheta 4 = " << customRound(closest[3]) << endl;
 
 		return closest;
 	}
 	else {
 		return { 0 };
 	}
+}
+
+double TransformMatrix::customRound(double num) {
+	return double(round(100 * num)) / 100;
 }
