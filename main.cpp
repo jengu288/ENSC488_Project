@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
 {
 	matrixDouble wristToTool = { {1, 0, 0, 0},
 							   {0, 1, 0, 0},
-							   {0, 0, 1, 10}, //assign z as 10 in according 
+							   {0, 0, 1, 10}, //assign z as 10mm 
 							   {0, 0, 0, 1} };
 	TransformMatrix WtoT(wristToTool);
 
