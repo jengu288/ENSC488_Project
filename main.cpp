@@ -169,13 +169,15 @@ int main(int argc, char* argv[])
 	while (1) {
 		if (c != ESC)
 		{
-			printf("\nOptions:\n");
+			printf("Options:\n");
 			printf("1: Specify joint values and move robot to that position. \n2: Specify a pose and move robot to that position. \n3: Grasp. \n4: Release. \nE: Exit by Pressing ESC \n");
+			printf("-------------------------------------------------\n");
+
 			ch = _getch();
 
 			if (ch == '1') //Joint Values Specified
 			{
-				printf("Specify Joint Values in degrees and mm in the order: theta1 theta2 d3 theta4\n");
+				printf("\n1: Specify Joint Values in degrees and mm in the order: theta1 theta2 d3 theta4\n");
 				fflush(stdin);
 				int jv1, jv2, jv3, jv4;
 				fflush(stdin);
@@ -203,7 +205,7 @@ int main(int argc, char* argv[])
 			}
 			else if (ch == '2') //Inverse Kinematics: Pose Specified
 			{
-				printf("Specify Pose in degrees and mm in the order: x y z phi\n");
+				printf("\n2: Specify Pose in degrees and mm in the order: x y z phi\n");
 				double x, y, z, phi;
 				fflush(stdin);
 				scanf_s("%lf", &x);
@@ -236,12 +238,12 @@ int main(int argc, char* argv[])
 			}
 			else if (ch == '3') // grasp
 			{
-				printf("Grasp Object\n");
+				printf("\n3: Grasp Object\n");
 				Grasp(true);
 			}
 			else if (ch == '4') // release
 			{
-				printf("Release Grasped Object\n");
+				printf("\n4: Release Grasped Object\n");
 				Grasp(false);
 			}
 			else if (ch == ESC) {
@@ -250,8 +252,10 @@ int main(int argc, char* argv[])
 			else {
 				printf("Please enter a valid key. Try again.");
 			}
-			printf("Press any key to continue \n");
-			printf("Press ESC to exit \n");
+			printf("\n-------------------------------------------------\n");
+			printf("C: Press any key to continue\nE: Exit by Pressing ESC \n");
+			printf("-------------------------------------------------\n");
+
 			c = _getch();
 		}
 		else
