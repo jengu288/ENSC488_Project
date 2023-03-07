@@ -16,6 +16,7 @@ const double j1MinLim = -2.61799, j1MaxLim = 2.61799, j2MinLim = -1.745329, j2Ma
 
 typedef vector<vector<double>> matrixDouble;
 
+
 class TransformMatrix
 {
 public:
@@ -50,8 +51,11 @@ public:
 	static vector<double> where(JOINT joints, TransformMatrix TtoW, TransformMatrix StoB);
 
 	static vector<vector<double>> invKinBaseToWrist(TransformMatrix wRelB, JOINT current);
+	static vector<double> solve(double x, double y, double z, double phi, TransformMatrix StoB, TransformMatrix WtoT);
 
 	TransformMatrix operator*(TransformMatrix rh); //overloaded operator to do this*rh
+
+	static double customRound(double num);
 
 
 private:
@@ -119,7 +123,7 @@ int main(int argc, char* argv[])
 
 	createdTestI.printTransformMatrix();
 	createdTestJ.printTransformMatrix();
-	
+	*/
 	//testing where and forward kin
 	matrixDouble wristToTool = { {1, 0, 0, 0},
 							   {0, 1, 0, 0},
@@ -139,7 +143,10 @@ int main(int argc, char* argv[])
 		cout << testPose[i] << " ";
 	}
 	cout << endl << endl;
-	*/
+	
+	cout << "testing solve\n";
+	vector<double> testJointVars = TransformMatrix::solve(0, 337, 135, 90, WtoT, StoB); //expected out = 0 0 -200 0
+
 	char ch;
 	int c;
 
@@ -366,7 +373,7 @@ void TransformMatrix::printTransformMatrix()
 	{
 		for (int j = 0; j < transform[i].size(); j++)
 		{
-			cout << double(round(100*transform[i][j]))/100 << " ";
+			cout << customRound(transform[i][j]) << " ";
 		}
 
 		cout << endl;
@@ -382,7 +389,7 @@ void TransformMatrix::printRotation()
 	{
 		for (int j = 0; j < ROTATE_MATRIX_DIM; j++)
 		{
-			cout << double(round(100 * rotationMat[i][j])) / 100 << " ";
+			cout << customRound(rotationMat[i][j]) << " ";
 		}
 
 		cout << endl;
@@ -396,7 +403,7 @@ void TransformMatrix::printPosition()
 	vector<double> positionVec = getPosition();
 	for (int i = 0; i < positionVec.size(); i++)
 	{
-		cout << double(round(100*positionVec[i]))/100 << " " << endl;
+		cout << customRound(positionVec[i]) << " " << endl;
 	}
 }
 
@@ -406,7 +413,7 @@ void TransformMatrix::printUserForm()
 	cout << "User Form" << endl;
 	for (int i = 0; i < userForm.size(); i++)
 	{
-		cout << double(round(100*userForm[i]))/100 << " ";
+		cout << customRound(userForm[i]) << " ";
 	}
 
 	cout << endl;
@@ -681,3 +688,40 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 	
 	return returnVec;
 	}
+
+vector<double> TransformMatrix::solve(double x, double y, double z, double phi, TransformMatrix StoB, TransformMatrix WtoT)
+{
+	TransformMatrix StoT = TransformMatrix::userFormToTransformMatrix(x, y, z, phi);
+	TransformMatrix invStoB = StoB.getInverseTransform();
+	TransformMatrix invWtoT = WtoT.getInverseTransform();
+	TransformMatrix BtoW = invStoB * StoT * invWtoT;
+
+	JOINT currentJointVars;
+	GetConfiguration(currentJointVars);
+	vector<vector<double>> solutions = invKinBaseToWrist(BtoW, currentJointVars);
+
+	if (solutions[0][0] != 0) {
+		vector<double> closest = solutions[1];
+
+		for (int i = 0; i < closest.size(); i++)
+		{
+			if (i != 2) {
+				closest[i] = RAD2DEG(closest[i]);
+			}
+		}
+		cout << "The closest solution that does not violate joint limits is:\n";
+		cout << "Theta 1 = " << customRound(closest[0]);
+		cout << "\nTheta 2 = " << customRound(closest[1]);
+		cout << "\nDist 3 = " << customRound(closest[2]);
+		cout << "\nTheta 4 = " << customRound(closest[3]) << endl;
+
+		return closest;
+	}
+	else {
+		return { 0 };
+	}
+}
+
+double TransformMatrix::customRound(double num) {
+	return double(round(100 * num)) / 100;
+}
