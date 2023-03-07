@@ -16,7 +16,6 @@ const double j1MinLim = -2.61799, j1MaxLim = 2.61799, j2MinLim = -1.745329, j2Ma
 
 typedef vector<vector<double>> matrixDouble;
 
-
 class TransformMatrix
 {
 public:
@@ -70,16 +69,20 @@ int main(int argc, char* argv[])
 {
 	double theta1 = 0, theta2 = 0, d3 = -200, theta4 = 0; // here for now
 
-	JOINT configA = { 0, 0, -200, 0 };//{ 0, 0, -200, 90 }; //JOINT R R P R
+	JOINT configA = { 0, 0, -200, 180 };//{ 0, 0, -200, 90 }; //JOINT R R P R
 	JOINT configB = { 0, 0, -200, 90 };
 
-	TransformMatrix::forKinBaseToWrist(configB);
-	TransformMatrix::forKinModules(configB);
+/*
+	cout << "This is from derived base to wrist transform" << endl;
+	TransformMatrix::forKinBaseToWrist(configB).printTransformMatrix();
+
+	cout << "This is from all the separate transforms multiplied" << endl;
+	TransformMatrix::forKinModules(configB).printTransformMatrix();
 
 	TransformMatrix identityTest = TransformMatrix();
 	matrixDouble rot = identityTest.getRotation();
 
-	/*//test print functions
+	//test print functions
 	cout << "Print identity from TransformMatrix default constructor" << endl;
 	identityTest.printTransformMatrix();
 	identityTest.printPosition();
@@ -136,13 +139,13 @@ int main(int argc, char* argv[])
 						   {0, 0, 1, 0},
 						   {0, 0, 0, 1} };
 	TransformMatrix StoB(stationToBase);
-	vector<double> testPose = TransformMatrix::where(configA, WtoT, StoB); //config A = 0 0 -200 0
+	vector<double> testPose = TransformMatrix::where(configA, WtoT, StoB); 
 	cout << "testing where\n";
 	for (int i = 0; i < testPose.size(); i++)
 	{
 		cout << testPose[i] << " ";
 	}
-	cout << endl << endl;
+	cout << endl;
 	
 	cout << "testing solve\n";
 	vector<double> testJointVars = TransformMatrix::solve(0, 337, 135, 90, WtoT, StoB); //expected out = 0 0 -200 0
@@ -458,8 +461,6 @@ TransformMatrix TransformMatrix::forKinBaseToWrist(JOINT jointParameters)
 							   {0, 0, -1, -d3 - L5 - L6 + L3 + L1},
 							   {0, 0, 0, 1} });
 
-	cout << "This is all together" << endl;
-	baseToWrist.printTransformMatrix();
 	return baseToWrist;
 }
 
@@ -491,8 +492,6 @@ TransformMatrix TransformMatrix::forKinModules(JOINT jointParameters)
 	TransformMatrix twoToFour = twoToThree * threeToFour;
 
 	TransformMatrix baseToFourModularized = baseToTwo * twoToFour;
-	cout << "This is from all the  transforms multiplied" << endl;
-	baseToFourModularized.printTransformMatrix();
 	return baseToFourModularized;
 }
 
@@ -562,12 +561,9 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 	z = pos[2];
 
 	vector<double>existsSolution{0};
-
 	vector<vector<double>> returnVec;
 	returnVec.push_back(existsSolution);
 
-
-	
 	vector<vector<double>>solutions;
 	for (size_t i = 0; i < 2; i++){
 		if ((pow(x, 2) + pow(y, 2) - pow(L4, 2) - pow(L2, 2)) / (2 * L2 * L4) > 1) {
@@ -716,7 +712,7 @@ vector<double> TransformMatrix::solve(double x, double y, double z, double phi, 
 		cout << "Theta 1 = " << customRound(closest[0]);
 		cout << "\nTheta 2 = " << customRound(closest[1]);
 		cout << "\nDist 3 = " << customRound(closest[2]);
-		cout << "\nTheta 4 = " << customRound(closest[3]) << endl;
+		cout << "\nTheta 4 = " << customRound(closest[3]) << endl << endl;
 
 		return closest;
 	}
