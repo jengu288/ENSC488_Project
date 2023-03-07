@@ -67,12 +67,13 @@ private:
 
 int main(int argc, char* argv[])
 {
+	/*
 	double theta1 = 0, theta2 = 0, d3 = -200, theta4 = 0; // here for now
 
 	JOINT configA = { 0, 0, -200, 180 };//{ 0, 0, -200, 90 }; //JOINT R R P R
 	JOINT configB = { 0, 0, -200, 90 };
 
-/*
+
 	cout << "This is from derived base to wrist transform" << endl;
 	TransformMatrix::forKinBaseToWrist(configB).printTransformMatrix();
 
@@ -138,7 +139,10 @@ int main(int argc, char* argv[])
 						   {0, 1, 0, 0},
 						   {0, 0, 1, 0},
 						   {0, 0, 0, 1} };
+
+	
 	TransformMatrix StoB(stationToBase);
+	/*
 	vector<double> testPose = TransformMatrix::where(configA, WtoT, StoB); 
 	cout << "testing where\n";
 	for (int i = 0; i < testPose.size(); i++)
@@ -149,7 +153,7 @@ int main(int argc, char* argv[])
 	
 	cout << "testing solve\n";
 	vector<double> testJointVars = TransformMatrix::solve(0, 337, 135, 90, WtoT, StoB); //expected out = 0 0 -200 0
-
+	*/
 	char ch;
 	int c;
 
@@ -216,7 +220,7 @@ int main(int argc, char* argv[])
 					JOINT configFK = { jv1, jv2, jv3, jv4 };
 					printf("Moving to specified joint variables.\n");
 					// Move robot to configuration
-					MoveToConfiguration(configFK);
+					MoveToConfiguration(configFK, true);
 					// Compute and print pose
 					vector<double> pose = TransformMatrix::where(configFK, WtoT, StoB);
 					printf("Position and Orientation of the Tool (x,y,z,phi): %.2f, %.2f, %.2f, %.2f\n", pose[0], pose[1], pose[2], pose[3]);
@@ -259,7 +263,7 @@ int main(int argc, char* argv[])
 					if (retVec.size() > 2) {
 						printf("Another worse solution: % lf, % lf, % lf, % lf\n", retVec[2][0] * 180 / PI, retVec[2][1] * 180 / PI, retVec[2][2], retVec[2][3] * 180 / PI);
 					}
-					MoveToConfiguration(configIK);
+					MoveToConfiguration(configIK, true);
 				}
 			}
 			else if (ch == '3') // grasp
