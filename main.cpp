@@ -630,19 +630,19 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 
 		bool jLimViolation = false;
 		
-		if (theta1 > j1MaxLim || theta1<j1MinLim) {
+		if (customRound(theta1) > j1MaxLim || customRound(theta1)<j1MinLim) {
 			printf("There exists a solution that is invalid because it violates joint limits: theta1=%lf degrees\n", theta1);
 			jLimViolation = true;
 		}
-		if (theta2 > j2MaxLim || theta2 < j2MinLim) {
+		if (customRound(theta2) > j2MaxLim || customRound(theta2) < j2MinLim) {
 			printf("There exists a solution that is invalid because it violates joint limits: theta2=%lf degrees\n", theta2);
 			jLimViolation = true;
 		}
-		if (d3 > j3MaxLim || d3<j3MinLim) {
+		if (customRound(d3) > j3MaxLim || customRound(d3)<j3MinLim) {
 			printf("There exists a solution that is invalid because it violates joint limits: d3=%lf\n", d3);
 			jLimViolation = true;
 		}
-		if (theta4 > j4MaxLim || theta4 < j4MinLim) {
+		if (customRound(theta4) > j4MaxLim || customRound(theta4) < j4MinLim) {
 			printf("There exists a solution that is invalid because it violates joint limits: theta4=%lf degrees\n", theta4);
 			jLimViolation = true;
 		}
