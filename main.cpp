@@ -190,13 +190,13 @@ int main(int argc, char* argv[])
 	while (1) {
 		if (c != ESC)
 		{
-			printf("Press 1 to specify joint values, 2 to specify a pose, 3 to grasp, or 4 to release \n");
+			printf("\nOptions:\n");
+			printf("Press 1 to specify joint values and move. \nPress 2 to specify a pose and move. \nPress 3 to grasp. \nPress 4 to release. \nPress ESC to end.\n");
 			ch = _getch();
 
-			if (ch == '1')
+			if (ch == '1') //Joint Values Specified
 			{
-				//Joint Values Specified
-				printf("Specify Joint Values in the format: theta1 theta2 d3 theta 4\n");
+				printf("Specify Joint Values in degrees and mm in the order: theta1 theta2 d3 theta4\n");
 				fflush(stdin);
 				int jv1, jv2, jv3, jv4;
 				fflush(stdin);
@@ -208,27 +208,31 @@ int main(int argc, char* argv[])
 				fflush(stdin);
 				scanf_s("%d", &jv4);
 				fflush(stdin);
-				JOINT configX = { jv1, jv2, jv3, jv4 };
-				printf("Moving to specified joint variables!\n");
-				MoveToConfiguration(configX);
-				TransformMatrix specifiedTransform;
-				specifiedTransform = specifiedTransform.forKinModules(configX);
-				//print current pose
-				specifiedTransform.printPosition();
+				if (jv1 < -150 || jv1 > 150 || jv2 < -100 || jv2 > 100 || jv3 < -200 || jv3 > -100 || jv4 < -160 || jv4 > 160) {
+					printf("Specified joint values are not within limits.");
+					continue;
+				}
+				else {
+					JOINT configFK = { jv1, jv2, jv3, jv4 };
+					printf("Moving to specified joint variables.\n");
+					// Move robot to configuration
+					MoveToConfiguration(configFK);
+					// Compute and print pose
+					vector<double> pose = TransformMatrix::where(configFK, WtoT, StoB);
+					printf("Position and Orientation of the Tool (x,y,z,phi): %.2f, %.2f, %.2f, %.2f\n", pose[0], pose[1], pose[2], pose[3]);
+				}
 			}
-				
-			else if (ch == '2')
+			else if (ch == '2') //Inverse Kinematics: Pose Specified
 			{
-				//pose specified
-				printf("Specify Pose\n");
+				printf("Specify Pose in degrees and mm in the order: x y z theta\n");
 				double x, y, z, theta;
 				fflush(stdin);
 				scanf_s("%lf", &x);
-				printf("x:%lf\n",x);
+				printf("x:%lf\n", x);
 				fflush(stdin);
 				scanf_s("%lf", &y);
 				fflush(stdin);
-				printf("y:%lf\n",y);
+				printf("y:%lf\n", y);
 				fflush(stdin);
 				scanf_s("%lf", &z);
 				fflush(stdin);
@@ -240,45 +244,40 @@ int main(int argc, char* argv[])
 				fflush(stdin);
 				TransformMatrix specifiedTransform;
 				specifiedTransform = specifiedTransform.userFormToTransformMatrix(x, y, z, theta);
-				JOINT configX;
-				GetConfiguration(configX);
-				vector<vector<double>>retVec = specifiedTransform.invKinBaseToWrist(specifiedTransform, configX);
+				JOINT configIK;
+				GetConfiguration(configIK);
+				vector<vector<double>>retVec = specifiedTransform.invKinBaseToWrist(specifiedTransform, configIK);
 				if (retVec[0][0] == 0) {
-					printf("sorry sweetie no solution\n");
+					printf("Sorry, no valid solution.\n");
 				}
 				else {
-					configX[0] = retVec[1][0];
-					configX[1] = retVec[1][1];
-					configX[2] = retVec[1][2];
-					configX[3] = retVec[1][3];
-					printf("Calculated Joint Variables: %lf,%lf,%lf,%lf\n",configX[0] * 180 / PI,configX[1] * 180 / PI,configX[2],configX[3] * 180 / PI);
+					configIK[0] = retVec[1][0];
+					configIK[1] = retVec[1][1];
+					configIK[2] = retVec[1][2];
+					configIK[3] = retVec[1][3];
+					printf("Calculated Joint Variables: %lf,%lf,%lf,%lf\n", configIK[0] * 180 / PI, configIK[1] * 180 / PI, configIK[2], configIK[3] * 180 / PI);
 					if (retVec.size() > 2) {
-						printf("surprise bitch there was another worse solution:%lf,%lf,%lf,%lf\n",retVec[2][0]*180/PI,retVec[2][1] * 180 / PI,retVec[2][2],retVec[2][3] * 180 / PI);
+						printf("Another worse solution: % lf, % lf, % lf, % lf\n", retVec[2][0] * 180 / PI, retVec[2][1] * 180 / PI, retVec[2][2], retVec[2][3] * 180 / PI);
 					}
-					
-					MoveToConfiguration(configX);
+					MoveToConfiguration(configIK);
 				}
-				//MoveToConfiguration(configX);
-				//print all possible solutions, indicate which are invalid
 			}
-			else if (ch == '3')
+			else if (ch == '3') // grasp
 			{
-				//grasp object
-				printf("Grasp Obj");
-				MoveToConfiguration(configB);
-				//print all possible solutions, indicate which are invalid
+				printf("Grasp Object");
+				Grasp(1);
 			}
-			else if (ch == '4')
+			else if (ch == '4') // release
 			{
-				//release grasped object
-				printf("Release Grasped Obj");
-				MoveToConfiguration(configB);
-				//print all possible solutions, indicate which are invalid
+				printf("Release Grasped Object");
+				Grasp(0);
+			}
+			else if (ch == ESC) {
+				break;
 			}
 			else {
-				printf("Please enter a valid key. Trying again!");
+				printf("Please enter a valid key. Try again.");
 			}
-
 			printf("Press any key to continue \n");
 			printf("Press ESC to exit \n");
 			c = _getch();
@@ -286,7 +285,6 @@ int main(int argc, char* argv[])
 		else
 			break;
 	}
-
 	return 0;
 }
 
