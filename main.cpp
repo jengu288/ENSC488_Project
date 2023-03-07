@@ -578,12 +578,7 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 		else if (theta2 < -PI) {
 			theta2 = theta2 + 2 * PI;
 		}
-		if (theta2 > j2MaxLim) {
-			continue;
-		}
-		else if (theta2 < j2MinLim) {
-			continue;
-		}
+		
 		double a = L4 * cos(theta2) + L2;
 		double b = L4 * sin(theta2);
 		if (a == 0 && b == 0) {
@@ -604,12 +599,7 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 		else if (theta1 < -PI) {
 			theta1 = theta1 + 2 * PI;
 		}
-		if (theta1 > j1MaxLim) {
-			continue;
-		}
-		else if (theta1 < j1MinLim) {
-			continue;
-		}
+		
 		double r11 = wRelB.getRotation()[0][0];
 		double r21 = wRelB.getRotation()[1][0];
 		if (r11 == 0) {
@@ -625,19 +615,32 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 		else if (theta4 < -PI) {
 			theta4 = theta4 + 2 * PI;
 		}
-		if (theta4 > j4MaxLim) {
-			continue;
-		}
-		else if (theta4 < j4MinLim) {
-			continue;
-		}
+		
 		d3 = L1 - z + L3 - L5 - L6;
-		if (d3 > j3MaxLim) {
+		
+
+		bool jLimViolation = false;
+		
+		if (theta1 > j1MaxLim || theta1<j1MinLim) {
+			printf("There exists a solution that is invalid because it violates joint limits: theta1=%lf degrees\n", theta1);
+			jLimViolation = true;
+		}
+		if (theta2 > j2MaxLim || theta2 < j2MinLim) {
+			printf("There exists a solution that is invalid because it violates joint limits: theta2=%lf degrees\n", theta2);
+			jLimViolation = true;
+		}
+		if (d3 > j3MaxLim || d3<j3MinLim) {
+			printf("There exists a solution that is invalid because it violates joint limits: d3=%lf\n", d3);
+			jLimViolation = true;
+		}
+		if (theta4 > j4MaxLim || theta4 < j4MinLim) {
+			printf("There exists a solution that is invalid because it violates joint limits: theta4=%lf degrees\n", theta4);
+			jLimViolation = true;
+		}
+		if (jLimViolation) {
 			continue;
 		}
-		else if (d3 < j3MinLim) {
-			continue;
-		}
+
 		vector<double>solutionElms;
 		solutionElms.push_back(theta1);
 		solutionElms.push_back(theta2);
@@ -651,6 +654,7 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 	if (solutions.size() == 1) {
 		returnVec[0] = { 1 }; //boolean:exists solution
 		returnVec.push_back(solutions[0]); //only one possible solution, return vec will have 2 elements
+		printf("the distance is: %lf\n", sqrt(pow(current[0] * 3.14159265 / 180 - solutions[0][0], 2) + pow(current[1] * 3.14159265 / 180 - solutions[0][1], 2) + pow(current[2] - solutions[0][2], 2) + pow(current[3] * 3.14159265 / 180 - solutions[0][3], 2)));
 		return returnVec;
 	}
 
@@ -668,9 +672,12 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 	returnVec.push_back(solutions[minDistIndex]);
 	if (minDistIndex == 1) {
 		returnVec.push_back(solutions[0]);
+		printf("minimum distance: %lf\nmaximum distance: %lf\n", distances[1], distances[0]);
 	}
 	else {
 		returnVec.push_back(solutions[1]);
+		printf("minimum distance: %lf\nmaximum distance: %lf\n", distances[0], distances[1]);
 	}
+	
 	return returnVec;
 	}
