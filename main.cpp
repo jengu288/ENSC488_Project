@@ -79,6 +79,7 @@ int main(int argc, char* argv[])
 						   {0, 0, 0, 1} };
 	TransformMatrix StoB(stationToBase);
 
+	JOINT homePose = {90, 0, -175, 0};
 	char ch;
 	int c;
 	const int ESC = 27;
@@ -94,7 +95,7 @@ int main(int argc, char* argv[])
 		if (c != ESC)
 		{
 			printf("Options:\n");
-			printf("1: Specify joint values and move robot to that position. \n2: Specify a pose and move robot to that position. \n3: Grasp. \n4: Release. \nE: Exit by Pressing ESC \n");
+			printf("1: Specify joint values and move robot to that position. \n2: Specify a pose and move robot to that position. \n3: Grasp. \n4: Release. \n5: Return robot to home position. \nE: Exit by Pressing ESC \n");
 			printf("-------------------------------------------------\n");
 
 			ch = _getch();
@@ -171,6 +172,12 @@ int main(int argc, char* argv[])
 			{
 				printf("\n4: Release Grasped Object\n");
 				Grasp(false);
+			}
+			else if (ch == '5') //return to home
+			{
+				printf("\n5: Return robot to home position\nMoving robot to home position.\n");
+
+				MoveToConfiguration(homePose, true);
 			}
 			else if (ch == ESC) {
 				break;
