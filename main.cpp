@@ -141,13 +141,8 @@ int main(int argc, char* argv[])
 	}
 	cout << endl << endl;
 	
-	vector<double> testJointVars = TransformMatrix::solve(0, 337, 135, 90, WtoT, StoB); //expected out = 0 0 -200 0
 	cout << "testing solve\n";
-	for (int i = 0; i < testJointVars.size(); i++)
-	{
-		cout << testJointVars[i] << " ";
-	}
-	cout << endl << endl;
+	vector<double> testJointVars = TransformMatrix::solve(0, 337, 135, 90, WtoT, StoB); //expected out = 0 0 -200 0
 
 	char ch;
 	int c;
@@ -695,8 +690,24 @@ vector<double> TransformMatrix::solve(double x, double y, double z, double phi, 
 	GetConfiguration(currentJointVars);
 	vector<vector<double>> solutions = invKinBaseToWrist(BtoW, currentJointVars);
 
-	if (solutions[0][0] != 0)
-		return solutions[1];
-	else
+	if (solutions[0][0] != 0) {
+		vector<double> closest = solutions[1];
+
+		for (int i = 0; i < closest.size(); i++)
+		{
+			if (i != 2) {
+				closest[i] = RAD2DEG(closest[i]);
+			}
+		}
+		cout << "The closest solution that does not violate joint limits is:\n";
+		cout << "Theta 1 = " << double(round(100 * closest[0])) / 100;
+		cout << "\nTheta 2 = " << double(round(100 * closest[1])) / 100;
+		cout << "\nDist 3 = " << double(round(100 * closest[2])) / 100;
+		cout << "\nTheta 4 = " << double(round(100 * closest[3])) / 100 << endl;
+
+		return closest;
+	}
+	else {
 		return { 0 };
+	}
 }
