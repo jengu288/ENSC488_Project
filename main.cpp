@@ -179,18 +179,18 @@ int main(int argc, char* argv[])
 			{
 				printf("\n1: Specify Joint Values in degrees and mm in the order: theta1 theta2 d3 theta4\n");
 				fflush(stdin);
-				int jv1, jv2, jv3, jv4;
+				double jv1, jv2, jv3, jv4;
 				fflush(stdin);
-				scanf_s("%d", &jv1);
+				scanf_s("%lf", &jv1);
 				fflush(stdin);
-				scanf_s("%d", &jv2);
+				scanf_s("%lf", &jv2);
 				fflush(stdin);
-				scanf_s("%d", &jv3);
+				scanf_s("%lf", &jv3);
 				fflush(stdin);
-				scanf_s("%d", &jv4);
+				scanf_s("%lf", &jv4);
 				fflush(stdin);
 				if (jv1 < -150 || jv1 > 150 || jv2 < -100 || jv2 > 100 || jv3 < -200 || jv3 > -100 || jv4 < -160 || jv4 > 160) {
-					printf("Specified joint values are not within limits.");
+					printf("Specified joint values are not within joint limits.\n");
 					continue;
 				}
 				else {
@@ -225,14 +225,16 @@ int main(int argc, char* argv[])
 					printf("Sorry, no valid solution.\n");
 				}
 				else {
-					configIK[0] = retVec[1][0];
-					configIK[1] = retVec[1][1];
+					configIK[0] = RAD2DEG(retVec[1][0]);
+					configIK[1] = RAD2DEG(retVec[1][1]);
 					configIK[2] = retVec[1][2];
-					configIK[3] = retVec[1][3];
-					printf("Calculated Joint Variables: %.2f,%.2f,%.2f,%.2f\n", configIK[0] * 180 / PI, configIK[1] * 180 / PI, configIK[2], configIK[3] * 180 / PI);
+					configIK[3] = RAD2DEG(retVec[1][3]);
+					printf("Calculated Joint Variables (theta1 theta2 d3 theta4): \n%.2f, %.2f ,%.2f, %.2f\n", configIK[0], configIK[1], configIK[2], configIK[3]);
 					if (retVec.size() > 2) {
-						printf("Another worse solution: %.2f, %.2f, %.2f, %.2f\n", retVec[2][0] * 180 / PI, retVec[2][1] * 180 / PI, retVec[2][2], retVec[2][3] * 180 / PI);
+						printf("Another worse solution: %.2f, %.2f, %.2f, %.2f\n", RAD2DEG(retVec[2][0]),RAD2DEG(retVec[2][1]), retVec[2][2], RAD2DEG(retVec[2][3]));
 					}
+
+					printf("Moving to calculated joint variables for closest solution.\n");
 					MoveToConfiguration(configIK, true);
 				}
 			}
@@ -251,6 +253,7 @@ int main(int argc, char* argv[])
 			}
 			else {
 				printf("Please enter a valid key. Try again.");
+				continue;
 			}
 			printf("\n-------------------------------------------------\n");
 			printf("C: Press any key to continue\nE: Exit by Pressing ESC \n");
@@ -601,22 +604,24 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 		bool jLimViolation = false;
 		
 		if (customRound(theta1) > j1MaxLim || customRound(theta1)<j1MinLim) {
-			printf("There exists a solution that is invalid because it violates joint limits: theta1=%lf degrees\n", theta1);
+			printf("There exists a solution that is invalid because it violates joint limits: theta1 = %.2lf degrees\n", RAD2DEG(theta1));
 			jLimViolation = true;
 		}
 		if (customRound(theta2) > j2MaxLim || customRound(theta2) < j2MinLim) {
-			printf("There exists a solution that is invalid because it violates joint limits: theta2=%lf degrees\n", theta2);
+			printf("There exists a solution that is invalid because it violates joint limits: theta2 = %.2lf degrees\n", RAD2DEG(theta2));
 			jLimViolation = true;
 		}
 		if (customRound(d3) > j3MaxLim || customRound(d3)<j3MinLim) {
-			printf("There exists a solution that is invalid because it violates joint limits: d3=%lf\n", d3);
+			printf("There exists a solution that is invalid because it violates joint limits: d3 = %.2lf\n", d3);
 			jLimViolation = true;
 		}
 		if (customRound(theta4) > j4MaxLim || customRound(theta4) < j4MinLim) {
-			printf("There exists a solution that is invalid because it violates joint limits: theta4=%lf degrees\n", theta4);
+			printf("There exists a solution that is invalid because it violates joint limits: theta4 = %.2lf degrees\n", RAD2DEG(theta4));
 			jLimViolation = true;
 		}
 		if (jLimViolation) {
+			printf("Solution that violates joint limits (theta1 theta2 d3 theta4):\n%.2lf, %.2lf, %.2lf, %.2lf\n\n", RAD2DEG(theta1), RAD2DEG(theta2), d3, RAD2DEG(theta4));
+			jLimViolation = true;
 			continue;
 		}
 		vector<double>solutionElements;
@@ -632,7 +637,7 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 	if (solutions.size() == 1) {
 		returnVec[0] = { 1 }; //flag:exists solution
 		returnVec.push_back(solutions[0]); //only one possible solution, returnVec will have 2 elements, flag and solution
-		printf("the distance is: %lf\n", sqrt(pow(current[0] * 3.14159265 / 180 - solutions[0][0], 2) + pow(current[1] * 3.14159265 / 180 - solutions[0][1], 2) + pow(current[2] - solutions[0][2], 2) + pow(current[3] * 3.14159265 / 180 - solutions[0][3], 2)));
+		printf("Distance to solution is: %.2lf\n", sqrt(pow(DEG2RAD(current[0]) - solutions[0][0], 2) + pow(DEG2RAD(current[1]) - solutions[0][1], 2) + pow(current[2] - solutions[0][2], 2) + pow(DEG2RAD(current[3]) - solutions[0][3], 2)));
 		return returnVec;
 	}
 
@@ -651,11 +656,11 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 	returnVec.push_back(solutions[minDistIndex]);
 	if (minDistIndex == 1) {
 		returnVec.push_back(solutions[0]);
-		printf("minimum distance: %lf\nmaximum distance: %lf\n", distances[1], distances[0]);
+		printf("Minimum distance for solution: %.4lf\nDistance for further solution: %.4lf\n\n", distances[1], distances[0]);
 	}
 	else {
 		returnVec.push_back(solutions[1]);
-		printf("minimum distance: %lf\nmaximum distance: %lf\n", distances[0], distances[1]);
+		printf("Minimum distance for solution: %.4lf\nDistance for further solution: %.4lf\n\n", distances[0], distances[1]);
 	}
 	
 	return returnVec;
