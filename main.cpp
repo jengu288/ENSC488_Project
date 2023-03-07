@@ -50,6 +50,7 @@ public:
 	static vector<double> where(JOINT joints, TransformMatrix TtoW, TransformMatrix StoB);
 
 	static vector<vector<double>> invKinBaseToWrist(TransformMatrix wRelB, JOINT current);
+	static vector<double> solve(double x, double y, double z, double phi, TransformMatrix StoB, TransformMatrix WtoT);
 
 	TransformMatrix operator*(TransformMatrix rh); //overloaded operator to do this*rh
 
@@ -119,7 +120,7 @@ int main(int argc, char* argv[])
 
 	createdTestI.printTransformMatrix();
 	createdTestJ.printTransformMatrix();
-	
+	*/
 	//testing where and forward kin
 	matrixDouble wristToTool = { {1, 0, 0, 0},
 							   {0, 1, 0, 0},
@@ -139,7 +140,15 @@ int main(int argc, char* argv[])
 		cout << testPose[i] << " ";
 	}
 	cout << endl << endl;
-	*/
+	
+	vector<double> testJointVars = TransformMatrix::solve(0, 337, 135, 90, WtoT, StoB); //expected out = 0 0 -200 0
+	cout << "testing solve\n";
+	for (int i = 0; i < testJointVars.size(); i++)
+	{
+		cout << testJointVars[i] << " ";
+	}
+	cout << endl << endl;
+
 	char ch;
 	int c;
 
@@ -674,3 +683,20 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 	}
 	return returnVec;
 	}
+
+vector<double> TransformMatrix::solve(double x, double y, double z, double phi, TransformMatrix StoB, TransformMatrix WtoT)
+{
+	TransformMatrix StoT = TransformMatrix::userFormToTransformMatrix(x, y, z, phi);
+	TransformMatrix invStoB = StoB.getInverseTransform();
+	TransformMatrix invWtoT = WtoT.getInverseTransform();
+	TransformMatrix BtoW = invStoB * StoT * invWtoT;
+
+	JOINT currentJointVars;
+	GetConfiguration(currentJointVars);
+	vector<vector<double>> solutions = invKinBaseToWrist(BtoW, currentJointVars);
+
+	if (solutions[0][0] != 0)
+		return solutions[1];
+	else
+		return { 0 };
+}
