@@ -1,5 +1,5 @@
 // main.cpp : Defines the entry point for the console application.
-//
+// hi my name is nikita >>>>:((( cutino appearently
 
 #include "stdafx.h"
 #include <stdio.h>
