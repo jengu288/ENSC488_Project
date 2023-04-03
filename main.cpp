@@ -11,9 +11,9 @@ using namespace std;
 
 const int ROTATE_MATRIX_DIM = 3;
 const double L1 = 405, L2 = 195, L3 = 70, L4 = 142, L5 = 270, L6 = 270; //in mm
-const double j1MinLim = -2.61799, j1MaxLim = 2.61799, j2MinLim = -1.745329, j2MaxLim = 1.745329, j3MinLim = -200, j3MaxLim = -100, j4MinLim = -2.792527, j4MaxLim = 2.792527;
-const double j1MinVel = -2.617994, j1MaxVel = 2.617994, j2MinVel = -2.617994, j2MaxVel = 2.617994, j3MinVel = -50, j3MaxVel = 50, j4MinVel = -2.617994, j4MaxVel = 2.617994;
-const double j1MinAcc = -10.47198, j1MaxAcc = 10.47198, j2MinAcc = -10.47198, j2MaxAcc = 10.47198, j3MinAcc = -200, j3MaxAcc = 200, j4MinAcc = -10.47198, j4MaxAcc = 10.47198;
+const double j1MinLim = -DEG2RAD(150), j1MaxLim = DEG2RAD(150), j2MinLim = -DEG2RAD(100), j2MaxLim = DEG2RAD(100), j3MinLim = -200, j3MaxLim = -100, j4MinLim = -DEG2RAD(160), j4MaxLim = DEG2RAD(160);
+const double j1MinVel = -DEG2RAD(150), j1MaxVel = DEG2RAD(150), j2MinVel = -DEG2RAD(150), j2MaxVel = DEG2RAD(150), j3MinVel = -50, j3MaxVel = 50, j4MinVel = -DEG2RAD(150), j4MaxVel = DEG2RAD(150);
+const double j1MinAcc = -DEG2RAD(600), j1MaxAcc = DEG2RAD(600), j2MinAcc = -DEG2RAD(600), j2MaxAcc = DEG2RAD(600), j3MinAcc = -200, j3MaxAcc = 200, j4MinAcc = -DEG2RAD(600), j4MaxAcc = DEG2RAD(600);
 
 const double minJointLimits[4] = { j1MinLim, j2MinLim, j3MinLim, j4MinLim };
 const double maxJointLimits[4] = { j1MaxLim, j2MaxLim, j3MaxLim, j4MaxLim };
@@ -22,6 +22,7 @@ const double maxVelocity[4] = { j1MaxLim, j2MaxLim, j3MaxLim, j4MaxLim }; //EDIT
 const double minAcceleration[4] = { j1MinLim, j2MinLim, j3MinLim, j4MinLim }; //EDIT
 const double maxAcceleration[4] = { j1MaxLim, j2MaxLim, j3MaxLim, j4MaxLim }; //EDIT
 typedef vector<vector<double>> matrixDouble;
+vector<vector<vector<double>>> Planner(matrixDouble positions, double time, bool& canMove, vector<string>& issues);
 
 class TransformMatrix
 {
@@ -207,24 +208,22 @@ int main(int argc, char* argv[])
 				// store current configuration into first row of position matrix
 				JOINT configCurrent;
 				GetConfiguration(configCurrent); 
-				for (int j = 0; j < 4; j++)
-				{
+				for (int j = 0; j < 4; j++){
 					positions[0][j] = configCurrent[j]; 
 				}
 
 				// set position matrix rows 1-3 to specified intermediate positions in joint space
-				double x, y, z, phi;
+				double x, y, z, phi, time;
+				bool canMove = true;
+				vector<string> issues;
 				bool earlyExitFlag = false;
-				for (int i = 1; i < 5; i++)
-				{
-					// get intermediate posiitons from user
-					if (i < 4) 
-					{
+				for (int i = 1; i < 5; i++){
+					// get intermediate positions from user
+					if (i < 4) {
 						printf("\n6: Specify the %i position in degrees and mm in the order: x y z phi\n", i);
 					}
 					// get goal position from user
-					else
-					{
+					else{
 						printf("\n6: Specify the goal position in degrees and mm in the order: x y z phi\n");
 					}
 					fflush(stdin);
@@ -256,6 +255,7 @@ int main(int argc, char* argv[])
 					}
 				}
 
+
 				if (earlyExitFlag) {
 					continue;
 				}
@@ -270,6 +270,20 @@ int main(int argc, char* argv[])
 					}
 					cout << endl;
 				}
+			printf("Enter the desired trajectory duration\n");
+			fflush(stdin);
+			scanf_s("%lf", &time);
+			vector<matrixDouble>coefMtx = Planner(positions, time, canMove, issues);
+			// print coef matrix
+			cout << "Cof Matrix" << endl;
+			for (int i = 0; i < 4; i++)
+			{
+				for (int j = 0; j < 4; j++)
+				{
+					cout << coefMtx[0][i][j] << " ";
+				}
+				cout << endl;
+			}
 			}
 			else if (ch == ESC) {
 				break;
@@ -559,11 +573,11 @@ double TransformMatrix::customRound(double num) {
 bool TransformMatrix::areJointsValid(double theta1, double theta2, double d3, double theta4) {
 	bool jLimViolation = false;
 
-	if (customRound(theta1) > j1MaxLim || customRound(theta1) < j1MinLim) {
+	if (customRound(DEG2RAD(theta1)) > j1MaxLim || customRound(DEG2RAD(theta1)) < j1MinLim) {
 		printf("There exists a solution that is invalid because it violates joint limits: theta1 = %.2lf degrees\n", RAD2DEG(theta1));
 		jLimViolation = true;
 	}
-	if (customRound(theta2) > j2MaxLim || customRound(theta2) < j2MinLim) {
+	if (customRound(DEG2RAD(theta2)) > j2MaxLim || customRound(DEG2RAD(theta2)) < j2MinLim) {
 		printf("There exists a solution that is invalid because it violates joint limits: theta2 = %.2lf degrees\n", RAD2DEG(theta2));
 		jLimViolation = true;
 	}
@@ -571,7 +585,7 @@ bool TransformMatrix::areJointsValid(double theta1, double theta2, double d3, do
 		printf("There exists a solution that is invalid because it violates joint limits: d3 = %.2lf\n", d3);
 		jLimViolation = true;
 	}
-	if (customRound(theta4) > j4MaxLim || customRound(theta4) < j4MinLim) {
+	if (customRound(DEG2RAD(theta4)) > j4MaxLim || customRound(DEG2RAD(theta4)) < j4MinLim) {
 		printf("There exists a solution that is invalid because it violates joint limits: theta4 = %.2lf degrees\n", RAD2DEG(theta4));
 		jLimViolation = true;
 	}
@@ -773,4 +787,91 @@ vector<double> TransformMatrix::solve(double x, double y, double z, double phi, 
 	}
 }
 
+vector<matrixDouble> Planner(matrixDouble positions, double time, bool &canMove, vector<string> &issues) { //TODO::is member function?
+	double timeSegment = time / 4;
+	for (int viaPoint = 0; viaPoint < positions.size(); viaPoint++) {
+		for (int joint = 0; joint < 4; joint++) {
+			if (joint == 2) {
+				if (positions[viaPoint][joint] > maxJointLimits[joint] || positions[viaPoint][joint] < minJointLimits[joint]) {
+					canMove = false;
+					string issueString = "via point " + to_string(viaPoint) + "violates the joint limits for joint" + to_string(joint) +
+						". The requested value is " + to_string(positions[viaPoint][joint]) + "and it must be between " + to_string(maxJointLimits[joint]) + "and " + to_string(minJointLimits[joint]);
+					issues.push_back(issueString);
+				}
+			}
+			else {
+				if (DEG2RAD(positions[viaPoint][joint]) > maxJointLimits[joint] || DEG2RAD(positions[viaPoint][joint]) < minJointLimits[joint]) {
+					canMove = false;
+					string issueString = "via point " + to_string(viaPoint) + "violates the joint limits for joint" + to_string(joint) +
+						". The requested value is " + to_string(positions[viaPoint][joint]) + "and it must be between " + to_string(maxJointLimits[joint]) + "and " + to_string(minJointLimits[joint]);
+					issues.push_back(issueString);
+				}
+			}
+		}
+	}
+	matrixDouble theta1;
+	matrixDouble theta2;
+	matrixDouble d3;
+	matrixDouble theta4;
+	vector<matrixDouble>coefMtx = { theta1, theta2, d3, theta4 }; //CHANGE LOCATION OF DEFINITION
 
+	//velocity calculations
+	matrixDouble segVelocityMtx;
+	for (int joint = 0; joint < 4; joint++) {
+		vector<double> segmentVelocityPerJoint;
+		for (size_t i = 0; i < 4; i++){
+			double currentPosition = positions[i][joint];
+			double nextPosition = positions[i + 1][joint];
+			double delta = nextPosition - currentPosition;
+			double segmentVelocity = delta / timeSegment;
+			segmentVelocityPerJoint.push_back(segmentVelocity);
+		}
+		segVelocityMtx.push_back(segmentVelocityPerJoint);
+	}
+	matrixDouble viaPointVelocityMtx;
+	//calculate via point velocity
+	for (int joint = 0; joint < 4; joint++) {
+		vector<double> viaPointVelocity;
+		viaPointVelocity.push_back(0);
+		for (int i = 0; i < 3; i++) {
+			double prevSegVel = segVelocityMtx[joint][i];
+			double nextSegVel = segVelocityMtx[joint][i + 1];
+			double pointVelocity = 0.5 * (prevSegVel + nextSegVel);
+			viaPointVelocity.push_back(pointVelocity);
+		}
+		viaPointVelocity.push_back(0);
+		viaPointVelocityMtx.push_back(viaPointVelocity);
+	}
+
+
+	for (int viaPoint = 0; viaPoint < 4; viaPoint++) {
+		for (int joint = 0; joint < 4; joint++) {
+			double current = positions[viaPoint][joint];
+			double next = positions[viaPoint + 1][joint];
+			double delta = next - current;
+			if (joint != 2) { //joint 3
+				if (delta < -PI) {
+					delta = delta + 2 * PI;
+				}
+				if (delta > PI) {
+					delta = delta - 2 * PI;
+				}
+			}
+
+			if (timeSegment < max(3 * abs(delta) / (2 * maxVelocity[joint]), sqrt(6 * abs(delta) / maxAcceleration[joint]))) {
+				//timing not feasible
+				canMove = false;
+				string issuesString = "timing is not feasible for joint " + to_string(joint + 1) + "what more can i say idk\n";
+			}
+			double a0 = current;
+			double a1 = viaPointVelocityMtx[joint][viaPoint];
+			double a2 = delta * double(3) / (timeSegment * timeSegment) - 2 * viaPointVelocityMtx[joint][viaPoint] / timeSegment - viaPointVelocityMtx[joint][viaPoint + 1] / timeSegment; //check last time segment
+			double a3 = -2 * delta / (timeSegment * timeSegment * timeSegment) + viaPointVelocityMtx[joint][viaPoint + 1] / (timeSegment * timeSegment) - viaPointVelocityMtx[joint][viaPoint];
+
+			vector<double> coefficents = { a0, a1, a2, a3 };
+			coefMtx[joint].push_back(coefficents);
+
+		}
+	}
+	return coefMtx;
+}
