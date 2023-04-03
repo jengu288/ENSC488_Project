@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <fstream>
 using namespace std;
 
 const int ROTATE_MATRIX_DIM = 3;
@@ -23,6 +24,7 @@ const double minAcceleration[4] = { j1MinLim, j2MinLim, j3MinLim, j4MinLim }; //
 const double maxAcceleration[4] = { j1MaxLim, j2MaxLim, j3MaxLim, j4MaxLim }; //EDIT
 typedef vector<vector<double>> matrixDouble;
 vector<vector<vector<double>>> Planner(matrixDouble positions, double time, bool& canMove, vector<string>& issues);
+
 
 class TransformMatrix
 {
@@ -75,6 +77,7 @@ private:
 							   {0, 0, 0, 1} };
 
 };
+void generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRate);
 
 int main(int argc, char* argv[])
 {
@@ -187,6 +190,8 @@ int main(int argc, char* argv[])
 			else if (ch == '3') // grasp
 			{
 				printf("\n3: Grasp Object\n");
+				vector<matrixDouble> coeffMatrix = { stationToBase, stationToBase, stationToBase, stationToBase };
+				generater(coeffMatrix, 10, 5);
 				Grasp(true);
 			}
 			else if (ch == '4') // release
@@ -302,6 +307,86 @@ int main(int argc, char* argv[])
 			break;
 	}
 	return 0;
+}
+
+void generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRate) {
+
+	matrixDouble position; 
+	matrixDouble velocity;
+	matrixDouble acceleration;
+	vector<double> empty(4);
+
+	for (int i = 0; i < samplingRate*4; i++)// need to initalize matrices to have a row for each sample
+	{
+		position.push_back(empty);
+		velocity.push_back(empty);
+		acceleration.push_back(empty);
+
+	}
+
+	double timeSeg = (trajTime / 4) / samplingRate; //timeSeg is based on how many samples per intermediate poly
+	for (int i = 0; i < 4; i++) //for each joint polynomial matrix in coeffMatrix
+	{
+		matrixDouble polynomialMat = coeffMatrix[i];
+		int matrixOffset = 0;
+
+		for (int j = 0; j < 4; j++) //there are always 4 intermediate polymonials for 3 via points + goal
+		{
+			double currentTime = 0;
+			//coeff extraction for each intermediate polymonial
+			double a0 = polynomialMat[j][0];
+			double a1 = polynomialMat[j][1];
+			double a2 = polynomialMat[j][2];
+			double a3 = polynomialMat[j][3];
+
+			for (int k = 0; k < samplingRate; k++) //for the requested number of samples
+			{
+				//add error checking for limits
+				position[k + matrixOffset][i] = a0 + a1 * currentTime + a2 * pow(currentTime, 2) + a3 * pow(currentTime, 3);
+				velocity[k + matrixOffset][i] = a1 + 2 * a2 * currentTime + 3 * a3 * pow(currentTime, 2);
+				acceleration[k + matrixOffset][i] = 2 * a2 + 6 * a3 * currentTime;
+
+				currentTime += timeSeg;
+			}
+			matrixOffset += 5;
+		}
+
+	}
+
+	//printing the values to a file
+	ofstream outFile("test.txt");
+	if (!outFile.is_open()) {
+		cout << "issues\n";
+	}
+	for (int i = 0; i < samplingRate*4; i++) //might change this to reflect # of samples per joint
+	{
+
+		for (double pos: position[i])
+		{
+			outFile << pos << " ";
+			cout << pos << " ";
+		}
+		for (double vel : velocity[i])
+		{
+			outFile << vel << " ";
+			cout << vel << " ";
+
+		}
+		for (double acc : acceleration[i])
+		{
+			outFile << acc << " ";
+			cout << acc << " ";
+
+		}
+
+		outFile << endl;
+		cout << endl;
+	}
+
+
+	outFile.close();
+
+
 }
 
 TransformMatrix::TransformMatrix(double x, double y, double z, double phi)
