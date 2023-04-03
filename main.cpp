@@ -1,5 +1,4 @@
 // main.cpp : Defines the entry point for the console application.
-// hi my name is nikita >>>>:((( cutino appearently
 
 #include "stdafx.h"
 #include <stdio.h>
@@ -95,6 +94,13 @@ int main(int argc, char* argv[])
 	int c;
 	const int ESC = 27;
 
+	// position matrix for trajectory planning
+	matrixDouble positions = { {0, 0, 0, 0},
+								{0, 0, 0, 0},
+								{0, 0, 0, 0},
+								{0, 0, 0, 0},
+								{0, 0, 0, 0} };
+
 	printf("\\:D/ Welcome to the ROBOSIM Controller Panel! \\:D/\n");
 	printf("-------------------------------------------------\n");
 	printf("1: Start \n");
@@ -106,7 +112,7 @@ int main(int argc, char* argv[])
 		if (c != ESC)
 		{
 			printf("Options:\n");
-			printf("1: Specify joint values and move robot to that position. \n2: Specify a pose and move robot to that position. \n3: Grasp. \n4: Release. \n5: Return robot to home position. \nE: Exit by Pressing ESC \n");
+			printf("1: Specify joint values and move robot to that position. \n2: Specify a pose and move robot to that position. \n3: Grasp. \n4: Release. \n5: Return robot to home position. \n6: Trajectory Planning. \nE: Exit by Pressing ESC \n");
 			printf("-------------------------------------------------\n");
 
 			ch = _getch();
@@ -189,6 +195,78 @@ int main(int argc, char* argv[])
 				printf("\n5: Return robot to home position\nMoving robot to home position.\n");
 
 				MoveToConfiguration(homePose, true);
+			}
+			else if (ch == '6') // trajectory planning
+			{
+				// each row of the position matrix is an intermediate position
+				// except the last row in the position matrix is the goal position and the first row is the current position
+			
+				// store current configuration into first row of position matrix
+				JOINT configCurrent;
+				GetConfiguration(configCurrent); 
+				for (int j = 0; j < 4; j++)
+				{
+					positions[0][j] = configCurrent[j]; 
+				}
+
+				// set position matrix rows 1-3 to specified intermediate positions in joint space
+				double x, y, z, phi;
+				bool earlyExitFlag = false;
+				for (int i = 1; i < 5; i++)
+				{
+					// get intermediate posiitons from user
+					if (i < 4) 
+					{
+						printf("\n6: Specify the %i position in degrees and mm in the order: x y z phi\n", i);
+					}
+					// get goal position from user
+					else
+					{
+						printf("\n6: Specify the goal position in degrees and mm in the order: x y z phi\n");
+					}
+					fflush(stdin);
+					scanf_s("%lf", &x);
+					fflush(stdin);
+					scanf_s("%lf", &y);
+					fflush(stdin);
+					scanf_s("%lf", &z);
+					fflush(stdin);
+					scanf_s("%lf", &phi);
+					fflush(stdin);
+					
+					// convert cartesian to joint values using invKin
+					TransformMatrix specifiedPointTM = TransformMatrix::userFormToTransformMatrix(x, y, z, phi);
+					matrixDouble specifiedPos = TransformMatrix::invKinBaseToWrist(specifiedPointTM, configCurrent);
+					
+					// check if solution possible for invKin
+					if (specifiedPos.size() == 1)
+					{
+						printf("\nThe specified position is not mathematically possible.\n");
+						earlyExitFlag = true;
+						break;
+					}
+
+					// store joint space positions in position matrix
+					for (int j = 0; j < 4; j++)
+					{
+						positions[i][j] = specifiedPos[1][j];
+					}
+				}
+
+				if (earlyExitFlag) {
+					continue;
+				}
+
+				// print position matrix
+				cout << "Position Matrix" << endl;
+				for (int i = 0; i < 5; i++)
+				{
+					for (int j = 0; j < 4; j++)
+					{
+						cout << positions[i][j] << " ";
+					}
+					cout << endl;
+				}
 			}
 			else if (ch == ESC) {
 				break;
