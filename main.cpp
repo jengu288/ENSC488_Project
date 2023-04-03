@@ -370,23 +370,18 @@ void generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRa
 		{
 			outFile << vel << " ";
 			cout << vel << " ";
-
 		}
 		for (double acc : acceleration[i])
 		{
 			outFile << acc << " ";
 			cout << acc << " ";
-
 		}
 
 		outFile << endl;
 		cout << endl;
 	}
 
-
 	outFile.close();
-
-
 }
 
 TransformMatrix::TransformMatrix(double x, double y, double z, double phi)
