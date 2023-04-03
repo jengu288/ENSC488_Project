@@ -15,12 +15,12 @@ const double j1MinLim = -2.61799, j1MaxLim = 2.61799, j2MinLim = -1.745329, j2Ma
 const double j1MinVel = -2.617994, j1MaxVel = 2.617994, j2MinVel = -2.617994, j2MaxVel = 2.617994, j3MinVel = -50, j3MaxVel = 50, j4MinVel = -2.617994, j4MaxVel = 2.617994;
 const double j1MinAcc = -10.47198, j1MaxAcc = 10.47198, j2MinAcc = -10.47198, j2MaxAcc = 10.47198, j3MinAcc = -200, j3MaxAcc = 200, j4MinAcc = -10.47198, j4MaxAcc = 10.47198;
 
-vector<const double> minJointLimits = { j1MinLim, j2MinLim, j3MinLim, j4MinLim };
-vector<const double> maxJointLimits = { j1MaxLim, j2MaxLim, j3MaxLim, j4MaxLim };
-vector<const double> minVelocity = { j1MinLim, j2MinLim, j3MinLim, j4MinLim }; //EDIT
-vector<const double> maxVelocity = { j1MaxLim, j2MaxLim, j3MaxLim, j4MaxLim }; //EDIT
-vector<const double> minAcceleration = { j1MinLim, j2MinLim, j3MinLim, j4MinLim }; //EDIT
-vector<const double> maxAcceleration = { j1MaxLim, j2MaxLim, j3MaxLim, j4MaxLim }; //EDIT
+const double minJointLimits[4] = { j1MinLim, j2MinLim, j3MinLim, j4MinLim };
+const double maxJointLimits[4] = { j1MaxLim, j2MaxLim, j3MaxLim, j4MaxLim };
+const double minVelocity[4] = { j1MinLim, j2MinLim, j3MinLim, j4MinLim }; //EDIT
+const double maxVelocity[4] = { j1MaxLim, j2MaxLim, j3MaxLim, j4MaxLim }; //EDIT
+const double minAcceleration[4] = { j1MinLim, j2MinLim, j3MinLim, j4MinLim }; //EDIT
+const double maxAcceleration[4] = { j1MaxLim, j2MaxLim, j3MaxLim, j4MaxLim }; //EDIT
 typedef vector<vector<double>> matrixDouble;
 
 class TransformMatrix
@@ -164,16 +164,19 @@ int main(int argc, char* argv[])
 				GetConfiguration(configIK);
 				vector<vector<double>>retVec = specifiedTransform.invKinBaseToWrist(specifiedTransform, configIK);
 				if (retVec[0][0] == 0) {
-					printf("Sorry, no valid solution.\n");
+					printf("Sorry, no valid solutions.\n");
 				}
-				else {
+				else if (retVec[0][0] == 1){
 					configIK[0] = RAD2DEG(retVec[1][0]);
 					configIK[1] = RAD2DEG(retVec[1][1]);
 					configIK[2] = retVec[1][2];
 					configIK[3] = RAD2DEG(retVec[1][3]);
 					printf("Calculated Joint Variables (theta1 theta2 d3 theta4): \n%.2f, %.2f ,%.2f, %.2f\n", configIK[0], configIK[1], configIK[2], configIK[3]);
 					if (retVec.size() > 2) {
-						printf("Another worse solution: %.2f, %.2f, %.2f, %.2f\n", RAD2DEG(retVec[2][0]),RAD2DEG(retVec[2][1]), retVec[2][2], RAD2DEG(retVec[2][3]));
+						if (specifiedTransform.areJointsValid(retVec[2][0], retVec[2][1], retVec[2][2], retVec[2][3])) {
+							printf("Another worse solution: %.2f, %.2f, %.2f, %.2f\n", RAD2DEG(retVec[2][0]), RAD2DEG(retVec[2][1]), retVec[2][2], RAD2DEG(retVec[2][3]));
+						}
+						
 					}
 
 					printf("Moving to calculated joint variables for closest solution.\n");
@@ -576,7 +579,7 @@ bool TransformMatrix::areJointsValid(double theta1, double theta2, double d3, do
 		printf("Solution that violates joint limits (theta1 theta2 d3 theta4):\n%.2lf, %.2lf, %.2lf, %.2lf\n\n", RAD2DEG(theta1), RAD2DEG(theta2), d3, RAD2DEG(theta4));
 		jLimViolation = true;
 	}
-	return jLimViolation;
+	return !jLimViolation;
 }
 
 vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB, JOINT current) {
@@ -681,7 +684,7 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 	//if there are multiple solutions possible
 	vector<double>distances;
 	for (size_t i = 0; i < solutions.size(); i++){
-		distances.push_back(sqrt(pow(current[0]*3.14159265/180 - solutions[i][0], 2) + pow(current[1]* 3.14159265 /180 - solutions[i][1], 2) + pow(current[2] - solutions[i][2], 2) + pow(current[3]* 3.14159265 /180 - solutions[i][3], 2)));
+		distances.push_back(sqrt(pow(DEG2RAD(current[0]) - solutions[i][0], 2) + pow(DEG2RAD(current[1]) - solutions[i][1], 2) + pow(current[2] - solutions[i][2], 2) + pow(DEG2RAD(current[3]) - solutions[i][3], 2)));
 	}
 	int minDistIndex = 0;
 	if (areJointsValid(solutions[0][0], solutions[0][1], solutions[0][2], solutions[0][3]) == 0 && areJointsValid(solutions[1][0], solutions[1][1], solutions[1][2], solutions[1][3]) == 0) {
