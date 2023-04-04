@@ -1014,8 +1014,8 @@ vector<matrixDouble> Planner(matrixDouble positions, double time, bool &canMove,
 			}
 			double a0 = current;
 			double a1 = viaPointVelocityMtx[joint][viaPoint];
-			double a2 = delta * double(3) / (timeSegment * timeSegment) - 2 * viaPointVelocityMtx[joint][viaPoint] / timeSegment - viaPointVelocityMtx[joint][viaPoint + 1] / timeSegment; //check last time segment
-			double a3 = -2 * delta / (timeSegment * timeSegment * timeSegment) + viaPointVelocityMtx[joint][viaPoint + 1] / (timeSegment * timeSegment) - viaPointVelocityMtx[joint][viaPoint];
+			double a2 = ((delta * double(3)) / (timeSegment * timeSegment)) - ((2 * viaPointVelocityMtx[joint][viaPoint]) / timeSegment) - (viaPointVelocityMtx[joint][viaPoint + 1] / timeSegment); //check last time segment
+			double a3 = ((-2 * delta) / (timeSegment * timeSegment * timeSegment)) + ((viaPointVelocityMtx[joint][viaPoint + 1] + viaPointVelocityMtx[joint][viaPoint]) / (timeSegment * timeSegment));
 
 			vector<double> coefficents = { a0, a1, a2, a3 };
 			coefMtx[joint].push_back(coefficents);
