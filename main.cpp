@@ -996,11 +996,11 @@ vector<matrixDouble> Planner(matrixDouble positions, double time, bool &canMove,
 			double next = positions[viaPoint + 1][joint];
 			double delta = next - current;
 			if (joint != 2) { //joint 3
-				if (delta < -PI) {
-					delta = delta + 2 * PI;
+				if (delta < -180) {
+					delta = delta + 360;
 				}
-				if (delta > PI) {
-					delta = delta - 2 * PI;
+				if (delta > 180) {
+					delta = delta - 360;
 				}
 			}
 
