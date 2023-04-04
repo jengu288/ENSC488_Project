@@ -224,6 +224,8 @@ int main(int argc, char* argv[])
 				bool canMove = true;
 				vector<string> issues;
 				bool earlyExitFlag = false;
+
+
 				for (int i = 1; i < 5; i++){
 					// get intermediate positions from user
 					if (i < 4) {
@@ -259,6 +261,7 @@ int main(int argc, char* argv[])
 					for (int j = 0; j < 4; j++)
 					{
 						positions[i][j] = specifiedPos[1][j];
+						configCurrent[j] = specifiedPos[1][j];
 					}
 				}
 
