@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
 				printf("\n3: Grasp Object\n");
 				vector<matrixDouble> coeffMatrix = { stationToBase, stationToBase, stationToBase, stationToBase };
 				vector<string> issues;
-				generater(coeffMatrix, 10, 5, issues);
+				generater(coeffMatrix, 10, 3, issues);
 				Grasp(true);
 			}
 			else if (ch == '4') // release
@@ -315,6 +315,7 @@ void generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRa
 	matrixDouble position; 
 	matrixDouble velocity;
 	matrixDouble acceleration;
+	vector<double> time;
 	vector<double> empty(4);
 
 	for (int i = 0; i < samplingRate*4; i++)// need to initalize matrices to have a row for each sample
@@ -353,10 +354,9 @@ void generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRa
 				velocity[k + matrixOffset][i] = calculatedVel;
 				acceleration[k + matrixOffset][i] = calculatedAcc;
 
-
 				currentTime += timeSeg;
 			}
-			matrixOffset += 5;
+			matrixOffset += samplingRate;
 		}
 
 	}
@@ -366,9 +366,15 @@ void generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRa
 	if (!outFile.is_open()) {
 		cout << "File could not be opened. That is weird.\n";
 	}
-
+	
+	double totalTime = 0;
 	for (int i = 0; i < samplingRate*4; i++) //might change this to reflect # of samples per joint differently
 	{
+		outFile << totalTime << " ";
+		cout << totalTime << " ";
+
+		totalTime += timeSeg;
+
 		for (double pos: position[i])
 		{
 			outFile << pos << " ";
