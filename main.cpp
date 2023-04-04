@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <Windows.h>
 #include <fstream>
 using namespace std;
 
@@ -307,6 +308,8 @@ int main(int argc, char* argv[])
 				matrixDouble sampleVel = samples[1];
 				matrixDouble sampleAcc = samples[2];
 
+				double currentTime = clock() / CLOCKS_PER_SEC;
+				double timeIncr = (time / (4)) / sampleRate;
 				for (int i = 0; i < samplePos.size(); i++)
 				{
 					JOINT p = { samplePos[i][0], samplePos[i][1], samplePos[i][2], samplePos[i][3] };
@@ -314,6 +317,17 @@ int main(int argc, char* argv[])
 					JOINT a = { sampleAcc[i][0], sampleAcc[i][1], sampleAcc[i][2], sampleAcc[i][3] };
 
 					MoveWithConfVelAcc(p, v, a);
+					/*while (clock() / CLOCKS_PER_SEC < currentTime + timeIncr) {
+						
+					}*/
+					Sleep(timeIncr * 1000);
+					JOINT actualCurrentConfig;
+					GetConfiguration(actualCurrentConfig);
+					//while (TransformMatrix::customRound(actualCurrentConfig[0])!= TransformMatrix::customRound(p[0]) && TransformMatrix::customRound(actualCurrentConfig[1])!= TransformMatrix::customRound(p[1]) && TransformMatrix::customRound(actualCurrentConfig[2]) != TransformMatrix::customRound(p[2]) && TransformMatrix::customRound(actualCurrentConfig[3])!= TransformMatrix::customRound(p[3])) {
+					//	GetConfiguration(actualCurrentConfig);
+					//}
+					//currentTime = clock() / CLOCKS_PER_SEC;
+
 				}
 
 
@@ -383,9 +397,9 @@ vector<matrixDouble> generater(vector<matrixDouble> coeffMatrix, double trajTime
 				acceleration[k + matrixOffset][i] = TransformMatrix::customRound(calculatedAcc);
 
 				t += timeSeg;
-				while (startTime + 1000*timeSeg > clock()) {
-					//not enough time has passed yet
-				}
+				//while (startTime + 1000*timeSeg > clock()) {
+				//	//not enough time has passed yet
+				//}
 				cout << startTime << "\n";
 			}
 
@@ -408,7 +422,7 @@ vector<matrixDouble> generater(vector<matrixDouble> coeffMatrix, double trajTime
 	}
 
 	//printing the values to a file
-	ofstream outFile("test.txt");
+	ofstream outFile("samples.txt");
 	if (!outFile.is_open()) {
 		cout << "File could not be opened. That is weird.\n";
 	}
