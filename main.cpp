@@ -345,7 +345,7 @@ vector<matrixDouble> generater(vector<matrixDouble> coeffMatrix, double trajTime
 	vector<double> time;
 	vector<double> empty(4);
 
-	for (int i = 0; i < samplingRate*4; i++)// need to initalize matrices to have a row for each sample
+	for (int i = 0; i < samplingRate*4 + 1; i++)// need to initalize matrices to have a row for each sample
 	{
 		position.push_back(empty);
 		velocity.push_back(empty);
@@ -388,6 +388,20 @@ vector<matrixDouble> generater(vector<matrixDouble> coeffMatrix, double trajTime
 				}
 				cout << startTime << "\n";
 			}
+
+			if (j == 3) { // for last polynomial, do one more point
+				double calculatedPos = a0 + a1 * t + a2 * pow(t, 2) + a3 * pow(t, 3);
+				double calculatedVel = a1 + 2 * a2 * t + 3 * a3 * pow(t, 2);
+				double calculatedAcc = 2 * a2 + 6 * a3 * t;
+
+				limitChecker(calculatedPos, calculatedVel, calculatedAcc, j, issues);
+
+				position[samplingRate + matrixOffset][i] = TransformMatrix::customRound(calculatedPos);
+				velocity[samplingRate + matrixOffset][i] = TransformMatrix::customRound(calculatedVel);
+				acceleration[samplingRate + matrixOffset][i] = TransformMatrix::customRound(calculatedAcc);
+
+				t += timeSeg;
+			}
 			matrixOffset += samplingRate;
 		}
 
@@ -400,7 +414,7 @@ vector<matrixDouble> generater(vector<matrixDouble> coeffMatrix, double trajTime
 	}
 	
 	double totalTime = 0;
-	for (int i = 0; i < samplingRate*4; i++) //might change this to reflect # of samples per joint differently
+	for (int i = 0; i < samplingRate*4 + 1; i++) //might change this to reflect # of samples per joint differently
 	{
 		if (i % samplingRate == 0) {
 			cout << "\nNew poly\n";
