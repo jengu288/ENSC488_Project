@@ -24,7 +24,8 @@ const double minAcceleration[4] = { j1MinLim, j2MinLim, j3MinLim, j4MinLim }; //
 const double maxAcceleration[4] = { j1MaxLim, j2MaxLim, j3MaxLim, j4MaxLim }; //EDIT
 typedef vector<vector<double>> matrixDouble;
 vector<vector<vector<double>>> Planner(matrixDouble positions, double time, bool& canMove, vector<string>& issues);
-
+void generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRate, vector<string>& issues);
+void limitChecker(double pos, double vel, double acc, int joint, vector<string>& issues);
 
 class TransformMatrix
 {
@@ -77,7 +78,6 @@ private:
 							   {0, 0, 0, 1} };
 
 };
-void generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRate);
 
 int main(int argc, char* argv[])
 {
@@ -191,7 +191,8 @@ int main(int argc, char* argv[])
 			{
 				printf("\n3: Grasp Object\n");
 				vector<matrixDouble> coeffMatrix = { stationToBase, stationToBase, stationToBase, stationToBase };
-				generater(coeffMatrix, 10, 5);
+				vector<string> issues;
+				generater(coeffMatrix, 10, 5, issues);
 				Grasp(true);
 			}
 			else if (ch == '4') // release
@@ -309,7 +310,7 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
-void generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRate) {
+void generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRate, vector<string>& issues) {
 
 	matrixDouble position; 
 	matrixDouble velocity;
@@ -342,9 +343,16 @@ void generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRa
 			for (int k = 0; k < samplingRate; k++) //for the requested number of samples
 			{
 				//add error checking for limits
-				position[k + matrixOffset][i] = a0 + a1 * currentTime + a2 * pow(currentTime, 2) + a3 * pow(currentTime, 3);
-				velocity[k + matrixOffset][i] = a1 + 2 * a2 * currentTime + 3 * a3 * pow(currentTime, 2);
-				acceleration[k + matrixOffset][i] = 2 * a2 + 6 * a3 * currentTime;
+				double calculatedPos = a0 + a1 * currentTime + a2 * pow(currentTime, 2) + a3 * pow(currentTime, 3);
+				double calculatedVel = a1 + 2 * a2 * currentTime + 3 * a3 * pow(currentTime, 2);
+				double calculatedAcc = 2 * a2 + 6 * a3 * currentTime;
+
+				limitChecker(calculatedPos, calculatedVel, calculatedAcc, j, issues);
+
+				position[k + matrixOffset][i] = calculatedPos;
+				velocity[k + matrixOffset][i] = calculatedVel;
+				acceleration[k + matrixOffset][i] = calculatedAcc;
+
 
 				currentTime += timeSeg;
 			}
@@ -356,11 +364,11 @@ void generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRa
 	//printing the values to a file
 	ofstream outFile("test.txt");
 	if (!outFile.is_open()) {
-		cout << "issues\n";
+		cout << "File could not be opened. That is weird.\n";
 	}
-	for (int i = 0; i < samplingRate*4; i++) //might change this to reflect # of samples per joint
-	{
 
+	for (int i = 0; i < samplingRate*4; i++) //might change this to reflect # of samples per joint differently
+	{
 		for (double pos: position[i])
 		{
 			outFile << pos << " ";
@@ -382,6 +390,43 @@ void generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRa
 	}
 
 	outFile.close();
+}
+
+void limitChecker(double pos, double vel, double acc, int joint, vector<string>& issues)
+{
+	if (pos > maxJointLimits[joint]) {
+		string issueString = "Joint " + to_string(joint + 1) + "violates its max joint limit since the requested value is " + to_string(pos)
+			+ " and the limit is " + to_string(maxJointLimits[joint]) + "\n";
+
+		issues.push_back(issueString);
+	}
+	else if (pos < minJointLimits[joint]) {
+		string issueString = "Joint " + to_string(joint + 1) + "violates its min joint limit since the requested value is " + to_string(pos) 
+			+ " and the limit is " + to_string(minJointLimits[joint]) + "\n";
+		issues.push_back(issueString);
+	}
+
+	if (vel > maxVelocity[joint]) {
+		string issueString = "Joint " + to_string(joint + 1) + "violates its max joint velocity limit since the requested value is " + to_string(vel) 
+			+ " and the limit is " +to_string(maxVelocity[joint]) + "\n";
+		issues.push_back(issueString);
+	}
+	else if (vel < minVelocity[joint]) {
+		string issueString = "Joint " + to_string(joint + 1) + "violates its min joint velocity limit since the requested value is " + to_string(vel) 
+			+ " and the limit is " + to_string(minVelocity[joint]) + "\n";
+		issues.push_back(issueString);
+	}
+
+	if (acc > maxAcceleration[joint]) {
+		string issueString = "Joint " + to_string(joint + 1) + "violates its max joint acceleration limit since the requested value is " + to_string(acc) 
+			+ " and the limit is " + to_string(maxAcceleration[joint]) + "\n";
+		issues.push_back(issueString);
+	}
+	else if (acc < minAcceleration[joint]) {
+		string issueString = "Joint " + to_string(joint + 1) + "violates its min joint acceleration limit since the requested value is " + to_string(acc)
+			+ " and the limit is " + to_string(minAcceleration[joint]) + "\n";
+		issues.push_back(issueString);
+	}
 }
 
 TransformMatrix::TransformMatrix(double x, double y, double z, double phi)
