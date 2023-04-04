@@ -18,12 +18,13 @@ const double j1MinAcc = -(600), j1MaxAcc = (600), j2MinAcc = -(600), j2MaxAcc = 
 
 const double minJointLimits[4] = { j1MinLim, j2MinLim, j3MinLim, j4MinLim };
 const double maxJointLimits[4] = { j1MaxLim, j2MaxLim, j3MaxLim, j4MaxLim };
-const double minVelocity[4] = { j1MinLim, j2MinLim, j3MinLim, j4MinLim }; //EDIT
-const double maxVelocity[4] = { j1MaxLim, j2MaxLim, j3MaxLim, j4MaxLim }; //EDIT
-const double minAcceleration[4] = { j1MinLim, j2MinLim, j3MinLim, j4MinLim }; //EDIT
-const double maxAcceleration[4] = { j1MaxLim, j2MaxLim, j3MaxLim, j4MaxLim }; //EDIT
+const double minVelocity[4] = { j1MinVel, j2MinVel, j3MinVel, j4MinVel }; //EDIT
+const double maxVelocity[4] = { j1MaxVel, j2MaxVel, j3MaxVel, j4MaxVel }; //EDIT
+const double minAcceleration[4] = { j1MinAcc, j2MinAcc, j3MinAcc, j4MinAcc }; //EDIT
+const double maxAcceleration[4] = { j1MaxAcc, j2MaxAcc, j3MaxAcc, j4MaxAcc }; //EDIT
+
 typedef vector<vector<double>> matrixDouble;
-vector<vector<vector<double>>> Planner(matrixDouble positions, double time, bool& canMove, vector<string>& issues);
+vector<matrixDouble> Planner(matrixDouble positions, double time, bool& canMove, vector<string>& issues);
 void generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRate, vector<string>& issues);
 void limitChecker(double pos, double vel, double acc, int joint, vector<string>& issues);
 
@@ -295,7 +296,7 @@ int main(int argc, char* argv[])
 					{
 						for (int k = 0; k < 4; k++)
 						{
-							cout << coefMtx[i][j][k] << " ";
+							cout << TransformMatrix::customRound(coefMtx[i][j][k]) << " ";
 						}
 						cout << endl;
 					}
