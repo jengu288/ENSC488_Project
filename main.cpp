@@ -25,7 +25,7 @@ const double maxAcceleration[4] = { j1MaxAcc, j2MaxAcc, j3MaxAcc, j4MaxAcc }; //
 
 typedef vector<vector<double>> matrixDouble;
 vector<matrixDouble> Planner(matrixDouble positions, double time, bool& canMove, vector<string>& issues);
-void generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRate, vector<string>& issues);
+vector<matrixDouble> generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRate, vector<string>& issues);
 void limitChecker(double pos, double vel, double acc, int joint, vector<string>& issues);
 
 class TransformMatrix
@@ -191,10 +191,6 @@ int main(int argc, char* argv[])
 			else if (ch == '3') // grasp
 			{
 				printf("\n3: Grasp Object\n");
-				vector<matrixDouble> coeffMatrix = { stationToBase, stationToBase, stationToBase, stationToBase };
-				vector<string> issues;
-				generater(coeffMatrix, 12, 3, issues);
-				
 				Grasp(true);
 			}
 			else if (ch == '4') // release
@@ -221,7 +217,7 @@ int main(int argc, char* argv[])
 				}
 
 				// set position matrix rows 1-3 to specified intermediate positions in joint space
-				double x, y, z, phi, time;
+				double x, y, z, phi, time, sampleRate;
 				bool canMove = true;
 				vector<string> issues;
 				bool earlyExitFlag = false;
@@ -266,7 +262,6 @@ int main(int argc, char* argv[])
 					}
 				}
 
-
 				if (earlyExitFlag) {
 					continue;
 				}
@@ -285,12 +280,14 @@ int main(int argc, char* argv[])
 				printf("Enter the desired trajectory duration\n");
 				fflush(stdin);
 				scanf_s("%lf", &time);
+				printf("Enter the desired number of samples per polynomial\n");
+				fflush(stdin);
+				scanf_s("%lf", &sampleRate);
 				vector<matrixDouble>coefMtx = Planner(positions, time, canMove, issues);
 
 				//print coef matrix
 				for (int i = 0; i < 4; i++)
 				{
-
 					printf("\nCoefficient Matrix for Joint Variable #%d\n", i + 1);
 					for (int j = 0; j < 4; j++)
 					{
@@ -302,6 +299,24 @@ int main(int argc, char* argv[])
 					}
 					cout << endl;
 				}
+
+				cout << "Testing generator with planner code\n";
+				vector<matrixDouble> samples = generater(coefMtx, time, (int)sampleRate, issues);
+
+				matrixDouble samplePos = samples[0];
+				matrixDouble sampleVel = samples[1];
+				matrixDouble sampleAcc = samples[2];
+
+				for (int i = 0; i < samplePos.size(); i++)
+				{
+					JOINT p = { samplePos[i][0], samplePos[i][1], samplePos[i][2], samplePos[i][3] };
+					JOINT v = { sampleVel[i][0], sampleVel[i][1], sampleVel[i][2], sampleVel[i][3] };
+					JOINT a = { sampleAcc[i][0], sampleAcc[i][1], sampleAcc[i][2], sampleAcc[i][3] };
+
+					MoveWithConfVelAcc(p, v, a);
+				}
+
+
 			}
 			else if (ch == ESC) {
 				break;
@@ -322,7 +337,7 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
-void generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRate, vector<string>& issues) {
+vector<matrixDouble> generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRate, vector<string>& issues) {
 
 	matrixDouble position; 
 	matrixDouble velocity;
@@ -363,9 +378,9 @@ void generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRa
 
 				limitChecker(calculatedPos, calculatedVel, calculatedAcc, j, issues);
 
-				position[k + matrixOffset][i] = calculatedPos;
-				velocity[k + matrixOffset][i] = calculatedVel;
-				acceleration[k + matrixOffset][i] = calculatedAcc;
+				position[k + matrixOffset][i] = TransformMatrix::customRound(calculatedPos);
+				velocity[k + matrixOffset][i] = TransformMatrix::customRound(calculatedVel);
+				acceleration[k + matrixOffset][i] = TransformMatrix::customRound(calculatedAcc);
 
 				t += timeSeg;
 				while (startTime + 1000*timeSeg > clock()) {
@@ -387,6 +402,10 @@ void generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRa
 	double totalTime = 0;
 	for (int i = 0; i < samplingRate*4; i++) //might change this to reflect # of samples per joint differently
 	{
+		if (i % samplingRate == 0) {
+			cout << "\nNew poly\n";
+		}
+
 		outFile << totalTime << " ";
 		cout << totalTime << " ";
 
@@ -413,6 +432,8 @@ void generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRa
 	}
 
 	outFile.close();
+	vector<matrixDouble> out = { position, velocity, acceleration };
+	return out;
 }
 
 void limitChecker(double pos, double vel, double acc, int joint, vector<string>& issues)
