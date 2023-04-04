@@ -12,9 +12,9 @@ using namespace std;
 
 const int ROTATE_MATRIX_DIM = 3;
 const double L1 = 405, L2 = 195, L3 = 70, L4 = 142, L5 = 270, L6 = 270; //in mm
-const double j1MinLim = -DEG2RAD(150), j1MaxLim = DEG2RAD(150), j2MinLim = -DEG2RAD(100), j2MaxLim = DEG2RAD(100), j3MinLim = -200, j3MaxLim = -100, j4MinLim = -DEG2RAD(160), j4MaxLim = DEG2RAD(160);
-const double j1MinVel = -DEG2RAD(150), j1MaxVel = DEG2RAD(150), j2MinVel = -DEG2RAD(150), j2MaxVel = DEG2RAD(150), j3MinVel = -50, j3MaxVel = 50, j4MinVel = -DEG2RAD(150), j4MaxVel = DEG2RAD(150);
-const double j1MinAcc = -DEG2RAD(600), j1MaxAcc = DEG2RAD(600), j2MinAcc = -DEG2RAD(600), j2MaxAcc = DEG2RAD(600), j3MinAcc = -200, j3MaxAcc = 200, j4MinAcc = -DEG2RAD(600), j4MaxAcc = DEG2RAD(600);
+const double j1MinLim = -(150), j1MaxLim = (150), j2MinLim = -(100), j2MaxLim = (100), j3MinLim = -200, j3MaxLim = -100, j4MinLim = -(160), j4MaxLim = (160);
+const double j1MinVel = -(150), j1MaxVel = (150), j2MinVel = -(150), j2MaxVel = (150), j3MinVel = -50, j3MaxVel = 50, j4MinVel = -(150), j4MaxVel = (150);
+const double j1MinAcc = -(600), j1MaxAcc = (600), j2MinAcc = -(600), j2MaxAcc = (600), j3MinAcc = -200, j3MaxAcc = 200, j4MinAcc = -(600), j4MaxAcc = (600);
 
 const double minJointLimits[4] = { j1MinLim, j2MinLim, j3MinLim, j4MinLim };
 const double maxJointLimits[4] = { j1MaxLim, j2MaxLim, j3MaxLim, j4MaxLim };
@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
 {
 	matrixDouble wristToTool = { {1, 0, 0, 0},
 							   {0, 1, 0, 0},
-							   {0, 0, 1, 10}, //assign z as 10mm 
+							   {0, 0, 1, 0}, //assign z as 10mm // make it 0 for testing
 							   {0, 0, 0, 1} };
 	TransformMatrix WtoT(wristToTool);
 
@@ -171,14 +171,14 @@ int main(int argc, char* argv[])
 					printf("Sorry, no valid solutions.\n");
 				}
 				else if (retVec[0][0] == 1){
-					configIK[0] = RAD2DEG(retVec[1][0]);
-					configIK[1] = RAD2DEG(retVec[1][1]);
+					configIK[0] = (retVec[1][0]);
+					configIK[1] = (retVec[1][1]);
 					configIK[2] = retVec[1][2];
-					configIK[3] = RAD2DEG(retVec[1][3]);
+					configIK[3] = (retVec[1][3]);
 					printf("Calculated Joint Variables (theta1 theta2 d3 theta4): \n%.2f, %.2f ,%.2f, %.2f\n", configIK[0], configIK[1], configIK[2], configIK[3]);
 					if (retVec.size() > 2) {
 						if (specifiedTransform.areJointsValid(retVec[2][0], retVec[2][1], retVec[2][2], retVec[2][3])) {
-							printf("Another worse solution: %.2f, %.2f, %.2f, %.2f\n", RAD2DEG(retVec[2][0]), RAD2DEG(retVec[2][1]), retVec[2][2], RAD2DEG(retVec[2][3]));
+							printf("Another worse solution: %.2f, %.2f, %.2f, %.2f\n", (retVec[2][0]), (retVec[2][1]), retVec[2][2], (retVec[2][3]));
 						}
 						
 					}
@@ -213,7 +213,7 @@ int main(int argc, char* argv[])
 			
 				// store current configuration into first row of position matrix
 				JOINT configCurrent;
-				GetConfiguration(configCurrent); 
+				GetConfiguration(configCurrent);  //returns curent config of joints in deg and mm
 				for (int j = 0; j < 4; j++){
 					positions[0][j] = configCurrent[j]; 
 				}
@@ -708,27 +708,27 @@ double TransformMatrix::customRound(double num) {
 	return double(round(100 * num)) / 100;
 }
 
-bool TransformMatrix::areJointsValid(double theta1, double theta2, double d3, double theta4) {
+bool TransformMatrix::areJointsValid(double theta1, double theta2, double d3, double theta4) {//inputs must be in degrees
 	bool jLimViolation = false;
 
-	if (customRound(DEG2RAD(theta1)) > j1MaxLim || customRound(DEG2RAD(theta1)) < j1MinLim) {
-		printf("There exists a solution that is invalid because it violates joint limits: theta1 = %.2lf degrees\n", RAD2DEG(theta1));
+	if (customRound((theta1)) > j1MaxLim || customRound((theta1)) < j1MinLim) {
+		printf("There exists a solution that is invalid because it violates joint limits: theta1 = %.2lf degrees\n", (theta1));
 		jLimViolation = true;
 	}
-	if (customRound(DEG2RAD(theta2)) > j2MaxLim || customRound(DEG2RAD(theta2)) < j2MinLim) {
-		printf("There exists a solution that is invalid because it violates joint limits: theta2 = %.2lf degrees\n", RAD2DEG(theta2));
+	if (customRound((theta2)) > j2MaxLim || customRound((theta2)) < j2MinLim) {
+		printf("There exists a solution that is invalid because it violates joint limits: theta2 = %.2lf degrees\n", (theta2));
 		jLimViolation = true;
 	}
 	if (customRound(d3) > j3MaxLim || customRound(d3) < j3MinLim) {
 		printf("There exists a solution that is invalid because it violates joint limits: d3 = %.2lf\n", d3);
 		jLimViolation = true;
 	}
-	if (customRound(DEG2RAD(theta4)) > j4MaxLim || customRound(DEG2RAD(theta4)) < j4MinLim) {
-		printf("There exists a solution that is invalid because it violates joint limits: theta4 = %.2lf degrees\n", RAD2DEG(theta4));
+	if (customRound((theta4)) > j4MaxLim || customRound((theta4)) < j4MinLim) {
+		printf("There exists a solution that is invalid because it violates joint limits: theta4 = %.2lf degrees\n", (theta4));
 		jLimViolation = true;
 	}
 	if (jLimViolation) {
-		printf("Solution that violates joint limits (theta1 theta2 d3 theta4):\n%.2lf, %.2lf, %.2lf, %.2lf\n\n", RAD2DEG(theta1), RAD2DEG(theta2), d3, RAD2DEG(theta4));
+		printf("Solution that violates joint limits (theta1 theta2 d3 theta4):\n%.2lf, %.2lf, %.2lf, %.2lf\n\n", (theta1), (theta2), d3, (theta4));
 		jLimViolation = true;
 	}
 	return !jLimViolation;
@@ -806,14 +806,16 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 		
 		d3 = L1 - z + L3 - L5 - L6;
 
-		
+		//These solutionElements are in terms of deg and mm
 		vector<double>solutionElements;
-		solutionElements.push_back(theta1);
-		solutionElements.push_back(theta2);
+		solutionElements.push_back(RAD2DEG(theta1));
+		solutionElements.push_back(RAD2DEG(theta2));
 		solutionElements.push_back(d3);
-		solutionElements.push_back(theta4);
+		solutionElements.push_back(RAD2DEG(theta4));
 		solutions.push_back(solutionElements);
 		}
+
+	//everything past this point is in degrees
 	if (solutions.size() == 0){
 		return returnVec;
 	}
@@ -821,13 +823,13 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 		if (areJointsValid(solutions[0][0], solutions[0][1], solutions[0][2], solutions[0][3])) {
 			returnVec[0] = { 1 }; //flag:exists solution
 			returnVec.push_back(solutions[0]); //only one possible solution, returnVec will have 2 elements, flag and solution
-			printf("Distance to solution is: %.2lf\n", sqrt(pow(DEG2RAD(current[0]) - solutions[0][0], 2) + pow(DEG2RAD(current[1]) - solutions[0][1], 2) + pow(current[2] - solutions[0][2], 2) + pow(DEG2RAD(current[3]) - solutions[0][3], 2)));
+			printf("Distance to solution is: %.2lf\n", sqrt(pow((current[0] - solutions[0][0]), 2) + pow((current[1] - solutions[0][1]), 2) + pow((current[2] - solutions[0][2]), 2) + pow((current[3] - solutions[0][3]), 2)));
 			return returnVec;
 		}
 		else {
 			returnVec[0] = { 0 }; //solution is invalid
 			returnVec.push_back(solutions[0]);
-			printf("Distance to invalid solution is: %.2lf\n", sqrt(pow(DEG2RAD(current[0]) - solutions[0][0], 2) + pow(DEG2RAD(current[1]) - solutions[0][1], 2) + pow(current[2] - solutions[0][2], 2) + pow(DEG2RAD(current[3]) - solutions[0][3], 2)));
+			printf("Distance to invalid solution is: %.2lf\n", sqrt(pow((current[0]) - (solutions[0][0]), 2) + pow((current[1]) - (solutions[0][1]), 2) + pow(current[2] - solutions[0][2], 2) + pow((current[3]) - (solutions[0][3]), 2)));
 			return returnVec;
 		}
 
@@ -836,7 +838,7 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 	//if there are multiple solutions possible
 	vector<double>distances;
 	for (size_t i = 0; i < solutions.size(); i++){
-		distances.push_back(sqrt(pow(DEG2RAD(current[0]) - solutions[i][0], 2) + pow(DEG2RAD(current[1]) - solutions[i][1], 2) + pow(current[2] - solutions[i][2], 2) + pow(DEG2RAD(current[3]) - solutions[i][3], 2)));
+		distances.push_back(sqrt(pow((current[0]) - solutions[i][0], 2) + pow((current[1]) - solutions[i][1], 2) + pow(current[2] - solutions[i][2], 2) + pow((current[3]) - solutions[i][3], 2)));
 	}
 	int minDistIndex = 0;
 	if (areJointsValid(solutions[0][0], solutions[0][1], solutions[0][2], solutions[0][3]) == 0 && areJointsValid(solutions[1][0], solutions[1][1], solutions[1][2], solutions[1][3]) == 0) {
@@ -884,7 +886,7 @@ vector<vector<double>> TransformMatrix::invKinBaseToWrist(TransformMatrix wRelB,
 		else {
 			returnVec.push_back(solutions[1]);
 			returnVec.push_back(solutions[0]);
-			printf(" distance for solution: %.4lf\nDistance for invalid solution: %.4lf\n\n", distances[1], distances[0]);//////////////
+			printf(" distance for solution: %.4lf\nDistance for invalid solution: %.4lf\n\n", distances[1], distances[0]);
 
 		}	
 	}	
