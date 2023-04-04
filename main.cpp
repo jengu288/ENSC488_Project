@@ -310,11 +310,23 @@ int main(int argc, char* argv[])
 
 				double currentTime = clock() / CLOCKS_PER_SEC;
 				double timeIncr = (time / (4)) / sampleRate;
+				matrixDouble cartesian;
+
+				//printing the values to a file
+				ofstream outFile("cartesian.txt");
+				if (!outFile.is_open()) {
+					cout << "File could not be opened. That is weird.\n";
+				}
+
 				for (int i = 0; i < samplePos.size(); i++)
 				{
 					JOINT p = { samplePos[i][0], samplePos[i][1], samplePos[i][2], samplePos[i][3] };
 					JOINT v = { sampleVel[i][0], sampleVel[i][1], sampleVel[i][2], sampleVel[i][3] };
 					JOINT a = { sampleAcc[i][0], sampleAcc[i][1], sampleAcc[i][2], sampleAcc[i][3] };
+
+					cartesian.push_back(TransformMatrix::transformMatrixToUserForm(TransformMatrix::forKinBaseToWrist(p)));
+					outFile << cartesian[i][0] << " " << cartesian[i][1];
+					outFile << endl;
 
 					MoveWithConfVelAcc(p, v, a);
 					/*while (clock() / CLOCKS_PER_SEC < currentTime + timeIncr) {
@@ -329,6 +341,7 @@ int main(int argc, char* argv[])
 					//currentTime = clock() / CLOCKS_PER_SEC;
 
 				}
+
 
 
 			}
