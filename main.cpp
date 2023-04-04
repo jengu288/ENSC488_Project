@@ -192,7 +192,8 @@ int main(int argc, char* argv[])
 				printf("\n3: Grasp Object\n");
 				vector<matrixDouble> coeffMatrix = { stationToBase, stationToBase, stationToBase, stationToBase };
 				vector<string> issues;
-				generater(coeffMatrix, 10, 3, issues);
+				generater(coeffMatrix, 12, 3, issues);
+				
 				Grasp(true);
 			}
 			else if (ch == '4') // release
@@ -341,19 +342,20 @@ void generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRa
 
 		for (int j = 0; j < 4; j++) //there are always 4 intermediate polymonials for 3 via points + goal
 		{
-			double currentTime = 0;
+			double t = 0;
 			//coeff extraction for each intermediate polymonial
 			double a0 = polynomialMat[j][0];
 			double a1 = polynomialMat[j][1];
 			double a2 = polynomialMat[j][2];
 			double a3 = polynomialMat[j][3];
-
+			
 			for (int k = 0; k < samplingRate; k++) //for the requested number of samples
 			{
+				clock_t startTime = clock();
 				//add error checking for limits
-				double calculatedPos = a0 + a1 * currentTime + a2 * pow(currentTime, 2) + a3 * pow(currentTime, 3);
-				double calculatedVel = a1 + 2 * a2 * currentTime + 3 * a3 * pow(currentTime, 2);
-				double calculatedAcc = 2 * a2 + 6 * a3 * currentTime;
+				double calculatedPos = a0 + a1 * t + a2 * pow(t, 2) + a3 * pow(t, 3);
+				double calculatedVel = a1 + 2 * a2 * t + 3 * a3 * pow(t, 2);
+				double calculatedAcc = 2 * a2 + 6 * a3 * t;
 
 				limitChecker(calculatedPos, calculatedVel, calculatedAcc, j, issues);
 
@@ -361,7 +363,11 @@ void generater(vector<matrixDouble> coeffMatrix, double trajTime, int samplingRa
 				velocity[k + matrixOffset][i] = calculatedVel;
 				acceleration[k + matrixOffset][i] = calculatedAcc;
 
-				currentTime += timeSeg;
+				t += timeSeg;
+				while (startTime + 1000*timeSeg > clock()) {
+					//not enough time has passed yet
+				}
+				cout << startTime << "\n";
 			}
 			matrixOffset += samplingRate;
 		}
