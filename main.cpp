@@ -276,20 +276,27 @@ int main(int argc, char* argv[])
 					}
 					cout << endl;
 				}
-			printf("Enter the desired trajectory duration\n");
-			fflush(stdin);
-			scanf_s("%lf", &time);
-			vector<matrixDouble>coefMtx = Planner(positions, time, canMove, issues);
-			// print coef matrix
-			cout << "Cof Matrix" << endl;
-			for (int i = 0; i < 4; i++)
-			{
-				for (int j = 0; j < 4; j++)
+
+				printf("Enter the desired trajectory duration\n");
+				fflush(stdin);
+				scanf_s("%lf", &time);
+				vector<matrixDouble>coefMtx = Planner(positions, time, canMove, issues);
+
+				//print coef matrix
+				for (int i = 0; i < 4; i++)
 				{
-					cout << coefMtx[0][i][j] << " ";
+
+					printf("\nCoefficient Matrix for Joint Variable #%d\n", i + 1);
+					for (int j = 0; j < 4; j++)
+					{
+						for (int k = 0; k < 4; k++)
+						{
+							cout << coefMtx[i][j][k] << " ";
+						}
+						cout << endl;
+					}
+					cout << endl;
 				}
-				cout << endl;
-			}
 			}
 			else if (ch == ESC) {
 				break;
