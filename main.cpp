@@ -1012,7 +1012,7 @@ vector<matrixDouble> Planner(matrixDouble positions, double time, bool &canMove,
 				}
 			}
 			else {
-				if (DEG2RAD(positions[viaPoint][joint]) > maxJointLimits[joint] || DEG2RAD(positions[viaPoint][joint]) < minJointLimits[joint]) {
+				if (positions[viaPoint][joint] > maxJointLimits[joint] || (positions[viaPoint][joint]) < minJointLimits[joint]) {
 					canMove = false;
 					string issueString = "via point " + to_string(viaPoint) + "violates the joint limits for joint" + to_string(joint) +
 						". The requested value is " + to_string(positions[viaPoint][joint]) + "and it must be between " + to_string(maxJointLimits[joint]) + "and " + to_string(minJointLimits[joint]);
@@ -1035,6 +1035,14 @@ vector<matrixDouble> Planner(matrixDouble positions, double time, bool &canMove,
 			double currentPosition = positions[i][joint];
 			double nextPosition = positions[i + 1][joint];
 			double delta = nextPosition - currentPosition;
+			/*if( joint!= 2) {
+				if (delta < -180) {
+					delta = delta + 360;
+				}
+				if (delta > 180) {
+					delta = delta - 360;
+				}
+			}*/
 			double segmentVelocity = delta / timeSegment;
 			segmentVelocityPerJoint.push_back(segmentVelocity);
 		}
@@ -1061,24 +1069,25 @@ vector<matrixDouble> Planner(matrixDouble positions, double time, bool &canMove,
 			double current = positions[viaPoint][joint];
 			double next = positions[viaPoint + 1][joint];
 			double delta = next - current;
-			if (joint != 2) { //joint 3
-				if (delta < -180) {
-					delta = delta + 360;
-				}
-				if (delta > 180) {
-					delta = delta - 360;
-				}
-			}
+			//if (joint != 2) { //joint 3
+			//	if (delta < -180) {
+			//		delta = delta + 360;
+			//	}
+			//	if (delta > 180) {
+			//		delta = delta - 360;
+			//	}
+			//}
 
 			if (timeSegment < max(3 * abs(delta) / (2 * maxVelocity[joint]), sqrt(6 * abs(delta) / maxAcceleration[joint]))) {
 				//timing not feasible
 				canMove = false;
 				string issuesString = "timing is not feasible for joint " + to_string(joint + 1) + "what more can i say idk\n";
+				issues.push_back(issuesString);
 			}
 			double a0 = current;
 			double a1 = viaPointVelocityMtx[joint][viaPoint];
-			double a2 = ((delta * double(3)) / (timeSegment * timeSegment)) - ((2 * viaPointVelocityMtx[joint][viaPoint]) / timeSegment) - (viaPointVelocityMtx[joint][viaPoint + 1] / timeSegment); //check last time segment
-			double a3 = ((-2 * delta) / (timeSegment * timeSegment * timeSegment)) + ((viaPointVelocityMtx[joint][viaPoint + 1] + viaPointVelocityMtx[joint][viaPoint]) / (timeSegment * timeSegment));
+			double a2 = ((delta * double(3)) / (pow(timeSegment, 2))) - ((2 * viaPointVelocityMtx[joint][viaPoint]) / timeSegment) - (viaPointVelocityMtx[joint][viaPoint + 1] / timeSegment); //check last time segment
+			double a3 = ((-2 * delta) / (pow(timeSegment, 3))) + ((viaPointVelocityMtx[joint][viaPoint + 1] + viaPointVelocityMtx[joint][viaPoint]) / (pow(timeSegment, 2)));
 
 			vector<double> coefficents = { a0, a1, a2, a3 };
 			coefMtx[joint].push_back(coefficents);
